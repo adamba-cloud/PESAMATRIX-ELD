@@ -1,4 +1,5 @@
-from flask import Blueprint, session, redirect, render_template_string, current_app
+from flask import Blueprint, session, redirect, current_app
+from app.utils.ui import layout
 import sqlite3
 
 user_bp = Blueprint("user", __name__)
@@ -16,6 +17,7 @@ def login_required():
 # =========================
 @user_bp.route("/dashboard")
 def dashboard():
+
     if not login_required():
         return redirect("/login")
 
@@ -32,26 +34,47 @@ def dashboard():
 
     status_color = "green" if user["status"] == "active" else "red"
 
-    return render_template_string(f"""
-    <div style="background:#0b1220;color:white;font-family:Arial;padding:20px">
+    return layout(f"""
+    <div class="card">
 
-        <h1 style="color:#38bdf8">📱 USER DASHBOARD</h1>
+        <h1 style="color:#38bdf8">
+            📱 USER DASHBOARD
+        </h1>
 
-        <div style="background:#111a2e;padding:10px;margin:10px;border-radius:8px">
+        <div class="card">
+
             👤 Name: {user['name']}<br>
             📱 Phone: {user['phone']}<br>
             🧾 Account: {user['account_number']}<br>
+
             🔐 Status:
-            <span style="color:{status_color}">{user['status']}</span>
+            <span style="color:{status_color}">
+                {user['status']}
+            </span>
+
         </div>
 
         <br>
 
-        <a href="/signals" style="color:#38bdf8">📊 View Signals</a><br>
-        <a href="/content" style="color:#38bdf8">📁 Content Gallery</a><br>
-        <a href="/news" style="color:#38bdf8">📰 News</a><br>
-        <a href="/payments/status" style="color:#38bdf8">💳 Payment Status</a><br>
-        <a href="/logout" style="color:red">Logout</a>
+        <a href="/signals" style="color:#38bdf8">
+            📊 View Signals
+        </a><br><br>
+
+        <a href="/content" style="color:#38bdf8">
+            📁 Content Gallery
+        </a><br><br>
+
+        <a href="/news" style="color:#38bdf8">
+            📰 News
+        </a><br><br>
+
+        <a href="/payments/status" style="color:#38bdf8">
+            💳 Payment Status
+        </a><br><br>
+
+        <a href="/logout" style="color:red">
+            Logout
+        </a>
 
     </div>
     """)
@@ -62,6 +85,7 @@ def dashboard():
 # =========================
 @user_bp.route("/signals")
 def signals():
+
     if not login_required():
         return redirect("/login")
 
@@ -76,31 +100,59 @@ def signals():
 
     # 🔒 LOCKED ACCESS
     if user["status"] != "active":
-        return render_template_string("""
-        <div style="background:#0b1220;color:white;padding:20px;font-family:Arial">
-            <h2>🔒 SIGNALS LOCKED</h2>
-            <p>You must subscribe to access trading signals.</p>
-            <a href="/payments/status" style="color:#38bdf8">Check Payment Status</a>
+
+        conn.close()
+
+        return layout("""
+        <div class="card">
+
+            <h2 style="color:#ff4d4d">
+                🔒 SIGNALS LOCKED
+            </h2>
+
+            <p>
+                You must subscribe to access trading signals.
+            </p>
+
+            <a href="/payments/status"
+               style="color:#38bdf8">
+               Check Payment Status
+            </a>
+
         </div>
         """)
 
-    signals = cur.execute("SELECT * FROM signals ORDER BY id DESC").fetchall()
+    signals = cur.execute(
+        "SELECT * FROM signals ORDER BY id DESC"
+    ).fetchall()
+
     conn.close()
 
-    html = "<h2 style='color:#38bdf8'>📊 LIVE SIGNALS</h2>"
+    html = """
+    <div class="card">
+
+        <h2 style="color:#38bdf8">
+            📊 LIVE SIGNALS
+        </h2>
+    """
 
     for s in signals:
+
         html += f"""
-        <div style="background:#111a2e;color:white;padding:10px;margin:10px;border-radius:8px">
+        <div class="card">
+
             📌 Asset: {s['asset']}<br>
             💰 Entry: {s['entry']}<br>
             🎯 TP: {s['tp']}<br>
             🛑 SL: {s['sl']}<br>
             📡 Status: {s['status']}
+
         </div>
         """
 
-    return html
+    html += "</div>"
+
+    return layout(html)
 
 
 # =========================
@@ -108,6 +160,7 @@ def signals():
 # =========================
 @user_bp.route("/payments/status")
 def payment_status():
+
     if not login_required():
         return redirect("/login")
 
@@ -127,20 +180,31 @@ def payment_status():
 
     conn.close()
 
-    html = "<h2 style='color:#38bdf8'>💳 PAYMENT STATUS</h2>"
+    html = """
+    <div class="card">
+
+        <h2 style="color:#38bdf8">
+            💳 PAYMENT STATUS
+        </h2>
+    """
 
     for p in payments:
+
         html += f"""
-        <div style="background:#111a2e;color:white;padding:10px;margin:10px;border-radius:8px">
+        <div class="card">
+
             📱 Phone: {p['phone']}<br>
             💰 Amount: {p['amount']}<br>
             🧾 M-Pesa: {p['mpesa_code']}<br>
             📦 Plan: {p['plan']}<br>
             🔐 Status: {p['status']}
+
         </div>
         """
 
-    return html
+    html += "</div>"
+
+    return layout(html)
 
 
 # =========================
@@ -148,6 +212,7 @@ def payment_status():
 # =========================
 @user_bp.route("/content")
 def content():
+
     if not login_required():
         return redirect("/login")
 
@@ -161,23 +226,34 @@ def content():
 
     conn.close()
 
-    html = "<h2 style='color:#38bdf8'>📁 CONTENT GALLERY</h2>"
+    html = """
+    <div class="card">
+
+        <h2 style="color:#38bdf8">
+            📁 CONTENT GALLERY
+        </h2>
+    """
 
     for i in items:
+
         html += f"""
-        <div style="background:#111a2e;color:white;padding:10px;margin:10px;border-radius:8px">
+        <div class="card">
 
             🏷 Type: {i['type']}<br>
-            📌 Title: {i['title']}<br>
+            📌 Title: {i['title']}<br><br>
 
-            <a href="{i['link']}" target="_blank" style="color:#38bdf8">
-                Open Content
+            <a href="{i['link']}"
+               target="_blank"
+               style="color:#38bdf8">
+               Open Content
             </a>
 
         </div>
         """
 
-    return html
+    html += "</div>"
+
+    return layout(html)
 
 
 # =========================
@@ -185,6 +261,7 @@ def content():
 # =========================
 @user_bp.route("/news")
 def news():
+
     if not login_required():
         return redirect("/login")
 
@@ -198,14 +275,25 @@ def news():
 
     conn.close()
 
-    html = "<h2 style='color:#38bdf8'>📰 LATEST NEWS</h2>"
+    html = """
+    <div class="card">
+
+        <h2 style="color:#38bdf8">
+            📰 LATEST NEWS
+        </h2>
+    """
 
     for p in posts:
+
         html += f"""
-        <div style="background:#111a2e;color:white;padding:10px;margin:10px;border-radius:8px">
+        <div class="card">
+
             📰 Title: {p['title']}<br>
             📄 Content: {p['link']}
+
         </div>
         """
 
-    return html
+    html += "</div>"
+
+    return layout(html)
