@@ -18,6 +18,7 @@ def create_app():
     # =========================
     # REGISTER BLUEPRINTS
     # =========================
+
     from app.routes.auth import auth_bp
     from app.routes.admin import admin_bp
     from app.routes.user import user_bp
@@ -29,10 +30,13 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
 
-    # ✔ FIX YOU ASKED FOR (signals properly imported + registered)
+    # signals
     app.register_blueprint(signals_bp)
 
+    # payments (✔ THIS IS CORRECT)
     app.register_blueprint(payments_bp)
+
+    # content
     app.register_blueprint(content_bp)
 
     # =========================
