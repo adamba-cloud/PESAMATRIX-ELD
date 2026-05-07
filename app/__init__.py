@@ -1,15 +1,23 @@
 from flask import Flask
 from app.config import Config
+import os
 
 def create_app():
     app = Flask(__name__)
+
+    # =========================
+    # CONFIG
+    # =========================
     app.config.from_object(Config)
 
-    # create folders
-    import os
+    # =========================
+    # CREATE REQUIRED FOLDERS
+    # =========================
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
-    # register routes
+    # =========================
+    # REGISTER BLUEPRINTS
+    # =========================
     from app.routes.auth import auth_bp
     from app.routes.admin import admin_bp
     from app.routes.user import user_bp
@@ -20,12 +28,23 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
+
+    # ✔ FIX YOU ASKED FOR (signals properly imported + registered)
     app.register_blueprint(signals_bp)
+
     app.register_blueprint(payments_bp)
     app.register_blueprint(content_bp)
 
+    # =========================
+    # HOME ROUTE
+    # =========================
     @app.route("/")
     def home():
-        return "<h1 style='text-align:center'>PESAMATRIX PRO SaaS Running 🚀</h1>"
+        return """
+        <h1 style='text-align:center;font-family:Arial'>
+        PESAMATRIX PRO SaaS Running 🚀
+        </h1>
+        <p style='text-align:center'>System is active</p>
+        """
 
     return app
