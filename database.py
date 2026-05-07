@@ -18,7 +18,6 @@ def init_db():
     cur = conn.cursor()
 
     # ================= USERS =================
-    # ✔ status TEXT added (subscription control)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY,
@@ -28,7 +27,8 @@ def init_db():
         password TEXT,
         role TEXT,
         status TEXT DEFAULT 'inactive',
-        account_number TEXT
+        account_number TEXT,
+        telegram_id TEXT
     )
     """)
 
@@ -56,7 +56,7 @@ def init_db():
     )
     """)
 
-    # ================= CONTENT (NEWS / MEDIA / POSTS) =================
+    # ================= CONTENT =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS content(
         id INTEGER PRIMARY KEY,
@@ -67,6 +67,26 @@ def init_db():
     """)
 
     conn.commit()
+    conn.close()
+
+    # 🔥 AFTER TABLE CREATION → SAFELY ADD COLUMN
+    add_telegram_column()
+
+
+# =========================
+# SAFE COLUMN ADDITION
+# =========================
+def add_telegram_column():
+    conn = sqlite3.connect(Config.DATABASE)
+    cur = conn.cursor()
+
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN telegram_id TEXT")
+        conn.commit()
+    except:
+        # column already exists → ignore safely
+        pass
+
     conn.close()
 
 
