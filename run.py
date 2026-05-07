@@ -1,5 +1,6 @@
 from app import create_app
 import sqlite3
+import os
 
 app = create_app()
 
@@ -77,7 +78,7 @@ def init_db():
 
 
 # =========================
-# START APP
+# START SERVER
 # =========================
 if __name__ == "__main__":
     print("🚀 Starting PESAMATRIX PRO SaaS...")
@@ -85,6 +86,13 @@ if __name__ == "__main__":
     init_db()
 
     print("✅ Database ready")
-    print("🌐 Server running on http://127.0.0.1:5000")
+    print("🌐 Server starting...")
 
-    app.run(debug=True)
+    # ✔ RENDER + LOCAL COMPATIBLE
+    port = int(os.environ.get("PORT", 5000))
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False  # IMPORTANT for production (Render)
+    )
