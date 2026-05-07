@@ -1,4 +1,5 @@
-from flask import Blueprint, request, session, redirect, render_template_string, current_app
+from flask import Blueprint, request, session, redirect, current_app
+from app.utils.ui import layout
 import sqlite3
 
 signals_bp = Blueprint("signals", __name__)
@@ -25,6 +26,7 @@ def get_db():
 # =========================
 @signals_bp.route("/signals")
 def view_signals():
+
     if not login_required():
         return redirect("/login")
 
@@ -41,18 +43,32 @@ def view_signals():
     # 🔒 LOCKED ACCESS
     # =========================
     if user["status"] != "active":
+
         conn.close()
-        return render_template_string("""
-        <div style="background:#0b1220;color:white;padding:30px;font-family:Arial;text-align:center">
 
-            <h1 style="color:#ff4d4d">🔒 SIGNALS LOCKED</h1>
+        return layout("""
+        <div class="card" style="text-align:center">
 
-            <p>You must subscribe and get approval to access trading signals.</p>
+            <h1 style="color:#ff4d4d">
+                🔒 SIGNALS LOCKED
+            </h1>
+
+            <p>
+                You must subscribe and get approval
+                to access trading signals.
+            </p>
 
             <br>
 
             <a href="/payments/status"
-               style="background:#38bdf8;color:black;padding:10px 20px;text-decoration:none;border-radius:5px">
+               style="
+                    background:#38bdf8;
+                    color:black;
+                    padding:10px 20px;
+                    text-decoration:none;
+                    border-radius:5px;
+                    font-weight:bold;
+               ">
                💳 Check Payment Status
             </a>
 
@@ -69,24 +85,30 @@ def view_signals():
     conn.close()
 
     html = """
-    <div style="background:#0b1220;color:white;font-family:Arial;padding:20px">
+    <div class="card">
 
-        <h1 style="color:#38bdf8">📊 LIVE SIGNALS</h1>
+        <h1 style="color:#38bdf8">
+            📊 LIVE SIGNALS
+        </h1>
     """
 
     for s in signals:
+
         html += f"""
-        <div style="background:#111a2e;padding:10px;margin:10px;border-radius:8px">
+        <div class="card">
+
             📌 Asset: {s['asset']}<br>
             💰 Entry: {s['entry']}<br>
             🎯 TP: {s['tp']}<br>
             🛑 SL: {s['sl']}<br>
             📡 Status: {s['status']}
+
         </div>
         """
 
     html += "</div>"
-    return html
+
+    return layout(html)
 
 
 # =========================
@@ -94,6 +116,7 @@ def view_signals():
 # =========================
 @signals_bp.route("/admin/signals", methods=["GET", "POST"])
 def create_signal():
+
     if session.get("role") != "admin":
         return redirect("/login")
 
@@ -101,6 +124,7 @@ def create_signal():
     cur = conn.cursor()
 
     if request.method == "POST":
+
         cur.execute("""
         INSERT INTO signals(asset, entry, tp, sl, status)
         VALUES(?,?,?,?,?)
@@ -114,25 +138,44 @@ def create_signal():
 
         conn.commit()
         conn.close()
+
         return redirect("/admin/signals")
 
     conn.close()
 
-    return render_template_string("""
-    <div style="background:#0b1220;color:white;font-family:Arial;padding:20px">
+    return layout("""
+    <div class="card">
 
-        <h1 style="color:#38bdf8">📊 CREATE SIGNAL</h1>
+        <h1 style="color:#38bdf8">
+            📊 CREATE SIGNAL
+        </h1>
 
         <form method="POST">
-            Asset:<br><input name="asset"><br><br>
-            Entry:<br><input name="entry"><br><br>
-            TP:<br><input name="tp"><br><br>
-            SL:<br><input name="sl"><br><br>
-            <button type="submit">Create Signal</button>
+
+            Asset:<br>
+            <input name="asset"><br><br>
+
+            Entry:<br>
+            <input name="entry"><br><br>
+
+            TP:<br>
+            <input name="tp"><br><br>
+
+            SL:<br>
+            <input name="sl"><br><br>
+
+            <button type="submit">
+                Create Signal
+            </button>
+
         </form>
 
         <br>
-        <a href="/admin" style="color:#38bdf8">⬅ Back to Admin</a>
+
+        <a href="/admin"
+           style="color:#38bdf8">
+           ⬅ Back to Admin
+        </a>
 
     </div>
     """)
