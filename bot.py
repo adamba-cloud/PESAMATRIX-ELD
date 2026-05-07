@@ -1,89 +1,108 @@
 import sqlite3
+import time
 import requests
-from time import sleep
-
-DB = "app.db"
-
-# 🔑 PUT YOUR TELEGRAM BOT TOKEN HERE
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+from app.config import Config
 
 # =========================
-# GET ACTIVE USERS ONLY
+# TELEGRAM CONFIG
+# =========================
+BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+
+# =========================
+# DB CONNECTION
+# =========================
+def get_db():
+    conn = sqlite3.connect(Config.DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+# =========================
+# GET ACTIVE USERS (TELEGRAM ONLY)
 # =========================
 def get_active_users():
-    conn = sqlite3.connect(DB)
+    conn = get_db()
     cur = conn.cursor()
 
     users = cur.execute("""
-        SELECT phone FROM users WHERE status='active'
+        SELECT telegram_id 
+        FROM users 
+        WHERE status='active' 
+        AND telegram_id IS NOT NULL
     """).fetchall()
 
     conn.close()
-    return users
+
+    return [u["telegram_id"] for u in users]
 
 
 # =========================
-# GET LATEST SIGNAL
-# =========================
-def get_latest_signal():
-    conn = sqlite3.connect(DB)
-    cur = conn.cursor()
-
-    signal = cur.execute("""
-        SELECT * FROM signals ORDER BY id DESC LIMIT 1
-    """).fetchone()
-
-    conn.close()
-    return signal
-
-
-# =========================
-# SEND TELEGRAM MESSAGE
+# SEND MESSAGE
 # =========================
 def send_message(chat_id, text):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-    requests.post(url, data={
-        "chat_id": chat_id,
-        "text": text
-    })
+    try:
+        requests.post(API_URL, data={
+            "chat_id": chat_id,
+            "text": text
+        })
+    except Exception as e:
+        print("Telegram error:", e)
 
 
 # =========================
-# BROADCAST SIGNAL
+# FORMAT SIGNAL MESSAGE
 # =========================
-def broadcast_signal():
-    signal = get_latest_signal()
-
-    if not signal:
-        return
-
-    message = f"""
+def format_signal(signal):
+    return f"""
 📊 NEW SIGNAL ALERT
 
-Asset: {signal[1]}
-Entry: {signal[2]}
-TP: {signal[3]}
-SL: {signal[4]}
-Status: {signal[5]}
+📌 Asset: {signal['asset']}
+💰 Entry: {signal['entry']}
+🎯 TP: {signal['tp']}
+🛑 SL: {signal['sl']}
+
+⚡ PESAMATRIX PRO
 """
 
-    users = get_active_users()
 
-    for u in users:
-        phone = u[0]
+# =========================
+# WATCH NEW SIGNALS
+# =========================
+def watch_signals():
+    print("🤖 Telegram Bot Running...")
 
-        # ⚠️ IMPORTANT:
-        # In real system, phone must be mapped to telegram chat_id
-        # For now we assume phone = chat_id
+    last_id = 0
 
-        send_message(phone, message)
+    while True:
+        conn = get_db()
+        cur = conn.cursor()
+
+        signal = cur.execute("""
+            SELECT * FROM signals 
+            ORDER BY id DESC 
+            LIMIT 1
+        """).fetchone()
+
+        conn.close()
+
+        if signal and signal["id"] != last_id:
+            last_id = signal["id"]
+
+            message = format_signal(signal)
+            users = get_active_users()
+
+            for chat_id in users:
+                send_message(chat_id, message)
+
+            print("📤 Signal broadcast sent")
+
+        time.sleep(5)
 
 
 # =========================
-# LOOP (LIVE BOT ENGINE)
+# START BOT
 # =========================
 if __name__ == "__main__":
-    while True:
-        broadcast_signal()
-        sleep(60)  # every 1 minute
+    watch_signals()
