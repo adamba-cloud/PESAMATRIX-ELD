@@ -19,6 +19,7 @@ def create_app():
     # REGISTER BLUEPRINTS
     # =========================
 
+    from app.routes.landing import landing_bp
     from app.routes.auth import auth_bp
     from app.routes.admin import admin_bp
     from app.routes.user import user_bp
@@ -26,29 +27,39 @@ def create_app():
     from app.routes.payments import payments_bp
     from app.routes.content import content_bp
 
+    # =========================
+    # LANDING PAGE (HOME)
+    # =========================
+    app.register_blueprint(landing_bp)
+
+    # =========================
+    # AUTH SYSTEM
+    # =========================
     app.register_blueprint(auth_bp)
+
+    # =========================
+    # ADMIN PANEL
+    # =========================
     app.register_blueprint(admin_bp)
+
+    # =========================
+    # USER PANEL
+    # =========================
     app.register_blueprint(user_bp)
 
-    # signals
+    # =========================
+    # SIGNALS
+    # =========================
     app.register_blueprint(signals_bp)
 
-    # payments (✔ THIS IS CORRECT)
+    # =========================
+    # PAYMENTS
+    # =========================
     app.register_blueprint(payments_bp)
 
-    # content
+    # =========================
+    # CONTENT SYSTEM
+    # =========================
     app.register_blueprint(content_bp)
-
-    # =========================
-    # HOME ROUTE
-    # =========================
-    @app.route("/")
-    def home():
-        return """
-        <h1 style='text-align:center;font-family:Arial'>
-        PESAMATRIX PRO SaaS Running 🚀
-        </h1>
-        <p style='text-align:center'>System is active</p>
-        """
 
     return app
