@@ -1,12 +1,23 @@
 import sqlite3
+from app.config import Config
 
-DB = "app.db"
+# =========================
+# DATABASE CONNECTION
+# =========================
+def get_db():
+    conn = sqlite3.connect(Config.DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
+
+# =========================
+# INITIALIZE DATABASE
+# =========================
 def init_db():
-    conn = sqlite3.connect(DB)
+    conn = sqlite3.connect(Config.DATABASE)
     cur = conn.cursor()
 
-    # USERS
+    # ================= USERS =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY,
@@ -20,7 +31,7 @@ def init_db():
     )
     """)
 
-    # PAYMENTS
+    # ================= PAYMENTS =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS payments(
         id INTEGER PRIMARY KEY,
@@ -32,7 +43,7 @@ def init_db():
     )
     """)
 
-    # SIGNALS
+    # ================= SIGNALS =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS signals(
         id INTEGER PRIMARY KEY,
@@ -44,7 +55,7 @@ def init_db():
     )
     """)
 
-    # ✅ THIS IS YOUR CONTENT TABLE (ADD HERE)
+    # ================= CONTENT (NEWS / MEDIA / POSTS) =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS content(
         id INTEGER PRIMARY KEY,
@@ -58,5 +69,7 @@ def init_db():
     conn.close()
 
 
-# Run once when app starts
+# =========================
+# AUTO RUN ON STARTUP
+# =========================
 init_db()
