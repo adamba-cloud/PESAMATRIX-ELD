@@ -18,6 +18,7 @@ def init_db():
     cur = conn.cursor()
 
     # ================= USERS =================
+    # ✔ status TEXT added (subscription control)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY,
@@ -26,7 +27,7 @@ def init_db():
         email TEXT,
         password TEXT,
         role TEXT,
-        status TEXT,
+        status TEXT DEFAULT 'inactive',
         account_number TEXT
     )
     """)
