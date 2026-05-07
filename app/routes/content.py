@@ -1,5 +1,7 @@
-from flask import Blueprint, request, session, redirect, render_template_string, current_app
-import sqlite3, os
+from flask import Blueprint, request, session, redirect, current_app
+from app.utils.ui import layout
+import sqlite3
+import os
 
 content_bp = Blueprint("content", __name__)
 
@@ -16,6 +18,7 @@ def is_admin():
 # =========================
 @content_bp.route("/admin/content", methods=["GET", "POST"])
 def upload_content():
+
     if not is_admin():
         return redirect("/login")
 
@@ -36,10 +39,12 @@ def upload_content():
         # FILE UPLOAD
         # =========================
         if file and file.filename != "":
+
             path = os.path.join(
                 current_app.config["UPLOAD_FOLDER"],
                 file.filename
             )
+
             file.save(path)
 
             saved_link = "/static/uploads/" + file.filename
@@ -60,10 +65,12 @@ def upload_content():
 
         return redirect("/admin/content")
 
-    return render_template_string("""
-    <div style="background:#0b1220;color:white;padding:20px;font-family:Arial">
+    return layout("""
+    <div class="card">
 
-        <h2 style="color:#38bdf8">📁 ADMIN CONTENT UPLOAD</h2>
+        <h2 style="color:#38bdf8">
+            📁 ADMIN CONTENT UPLOAD
+        </h2>
 
         <form method="POST" enctype="multipart/form-data">
 
@@ -85,10 +92,14 @@ def upload_content():
             <input name="link"><br><br>
 
             <button>Upload Content</button>
+
         </form>
 
         <br>
-        <a href="/admin" style="color:#38bdf8">⬅ Back to Admin</a>
+
+        <a href="/admin" style="color:#38bdf8">
+            ⬅ Back to Admin
+        </a>
 
     </div>
     """)
