@@ -8,6 +8,7 @@ def admin_home():
         return redirect("/login")
 
     conn = sqlite3.connect(current_app.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
     users = cur.execute(
@@ -32,38 +33,42 @@ def admin_home():
         </h1>
 
         <div class="card">
-            👤 Users: {users}
+            👤 Users: <b>{users}</b>
         </div>
 
         <div class="card">
-            💳 Payments: {payments}
+            💳 Payments: <b>{payments}</b>
         </div>
 
         <div class="card">
-            📊 Signals: {signals}
+            📊 Signals: <b>{signals}</b>
         </div>
 
         <br>
 
-        <a href="/admin/users"
-           style="color:#38bdf8">
-           Manage Users
-        </a><br><br>
+        <div class="card">
 
-        <a href="/admin/payments"
-           style="color:#38bdf8">
-           Approve Payments
-        </a><br><br>
+            <a href="/admin/users" style="color:#38bdf8">
+                👤 Manage Users
+            </a><br><br>
 
-        <a href="/admin/signals"
-           style="color:#38bdf8">
-           Create Signals
-        </a><br><br>
+            <a href="/admin/payments" style="color:#38bdf8">
+                💳 Approve Payments
+            </a><br><br>
 
-        <a href="/logout"
-           style="color:red">
-           Logout
-        </a>
+            <a href="/admin/signals" style="color:#38bdf8">
+                📊 Create Signals
+            </a><br><br>
+
+            <a href="/admin/content" style="color:#38bdf8">
+                📁 Upload Content
+            </a><br><br>
+
+            <a href="/logout" style="color:red">
+                🚪 Logout
+            </a>
+
+        </div>
 
     </div>
     """)
