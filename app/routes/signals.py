@@ -3,8 +3,9 @@ import sqlite3
 
 signals_bp = Blueprint("signals", __name__)
 
+
 # =========================
-# CHECK LOGIN
+# LOGIN CHECK
 # =========================
 def login_required():
     return session.get("user_id") is not None
@@ -20,7 +21,7 @@ def get_db():
 
 
 # =========================
-# VIEW SIGNALS (USER SIDE)
+# USER SIGNALS PAGE (LOCKED SYSTEM)
 # =========================
 @signals_bp.route("/signals")
 def view_signals():
@@ -36,18 +37,31 @@ def view_signals():
         (session["user_id"],)
     ).fetchone()
 
+    # =========================
     # 🔒 LOCKED ACCESS
+    # =========================
     if user["status"] != "active":
         conn.close()
         return render_template_string("""
-        <div style="background:#0b1220;color:white;padding:20px;font-family:Arial">
-            <h2>🔒 SIGNALS LOCKED</h2>
-            <p>You must subscribe to access trading signals.</p>
-            <a href="/payments/status" style="color:#38bdf8">Check Payment Status</a>
+        <div style="background:#0b1220;color:white;padding:30px;font-family:Arial;text-align:center">
+
+            <h1 style="color:#ff4d4d">🔒 SIGNALS LOCKED</h1>
+
+            <p>You must subscribe and get approval to access trading signals.</p>
+
+            <br>
+
+            <a href="/payments/status"
+               style="background:#38bdf8;color:black;padding:10px 20px;text-decoration:none;border-radius:5px">
+               💳 Check Payment Status
+            </a>
+
         </div>
         """)
 
-    # get signals
+    # =========================
+    # UNLOCKED SIGNALS
+    # =========================
     signals = cur.execute(
         "SELECT * FROM signals ORDER BY id DESC"
     ).fetchall()
@@ -56,6 +70,7 @@ def view_signals():
 
     html = """
     <div style="background:#0b1220;color:white;font-family:Arial;padding:20px">
+
         <h1 style="color:#38bdf8">📊 LIVE SIGNALS</h1>
     """
 
@@ -98,6 +113,8 @@ def create_signal():
         ))
 
         conn.commit()
+        conn.close()
+        return redirect("/admin/signals")
 
     conn.close()
 
@@ -111,7 +128,7 @@ def create_signal():
             Entry:<br><input name="entry"><br><br>
             TP:<br><input name="tp"><br><br>
             SL:<br><input name="sl"><br><br>
-            <button>Create Signal</button>
+            <button type="submit">Create Signal</button>
         </form>
 
         <br>
