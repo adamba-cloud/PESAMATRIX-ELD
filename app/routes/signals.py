@@ -1,5 +1,6 @@
 from flask import Blueprint, session, redirect, current_app
 from app.utils.ui import layout
+from app.utils.decorators import login_required, admin_required
 import sqlite3
 
 signals_bp = Blueprint("signals", __name__)
@@ -9,44 +10,46 @@ signals_bp = Blueprint("signals", __name__)
 # DB HELPER
 # =========================
 def get_db():
-    conn = sqlite3.connect(current_app.config["DATABASE"])
+
+    conn = sqlite3.connect(
+        current_app.config["DATABASE"]
+    )
+
     conn.row_factory = sqlite3.Row
+
     return conn
-
-
-# =========================
-# LOGIN CHECK
-# =========================
-def login_required():
-    return session.get("user_id") is not None
 
 
 # =========================
 # USER SIGNALS (LOCKED SYSTEM)
 # =========================
 @signals_bp.route("/signals")
+@login_required
 def view_signals():
-
-    if not login_required():
-        return redirect("/login")
 
     conn = get_db()
     cur = conn.cursor()
 
     user = cur.execute(
-        "SELECT status FROM users WHERE id=?",
+        """
+        SELECT status
+        FROM users
+        WHERE id=?
+        """,
         (session["user_id"],)
     ).fetchone()
 
     # =========================
-    # 🔒 LOCK CHECK
+    # 🔒 ACCESS CONTROL
     # =========================
     if not user or user["status"] != "active":
+
         conn.close()
 
         return layout("""
 
-        <div class="card" style="text-align:center">
+        <div class="card"
+            style="text-align:center">
 
             <h1 style="color:#ef4444">
                 🔒 SIGNALS LOCKED
@@ -64,7 +67,7 @@ def view_signals():
 
             <br>
 
-            <a href="/payments/status"
+            <a href="/payments"
                style="
                 background:#38bdf8;
                 color:black;
@@ -73,7 +76,9 @@ def view_signals():
                 border-radius:8px;
                 font-weight:bold;
                ">
+
                💳 Check Payment Status
+
             </a>
 
         </div>
@@ -85,7 +90,8 @@ def view_signals():
     # =========================
     signals = cur.execute(
         """
-        SELECT * FROM signals
+        SELECT *
+        FROM signals
         ORDER BY id DESC
         """
     ).fetchall()
@@ -93,16 +99,22 @@ def view_signals():
     conn.close()
 
     html = """
+
     <div class="card">
 
         <h1 style="color:#38bdf8">
             📊 LIVE TRADING SIGNALS
         </h1>
+
     """
 
     for s in signals:
 
-        status_class = s["status"].lower()
+        status_class = (
+            s["status"].lower()
+            if s["status"]
+            else "unknown"
+        )
 
         html += f"""
 
