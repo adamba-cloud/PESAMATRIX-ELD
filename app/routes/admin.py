@@ -3,17 +3,13 @@ from app.utils.ui import layout
 from app.utils.security import admin_required
 import sqlite3
 
-# =========================
-# BLUEPRINT
-# =========================
 admin_bp = Blueprint("admin", __name__)
 
 
 # =========================
-# ROOT ADMIN ROUTE
+# ADMIN ROOT
 # =========================
 @admin_bp.route("/admin")
-@admin_bp.route("/admin/")
 def admin_root():
     return redirect("/admin/dashboard")
 
@@ -24,7 +20,6 @@ def admin_root():
 @admin_bp.route("/admin/dashboard")
 def admin_dashboard():
 
-    # 🔒 SECURITY CHECK
     if not admin_required():
         return redirect("/login")
 
@@ -41,9 +36,7 @@ def admin_dashboard():
     return layout(f"""
     <div class="card">
 
-        <h1 style="color:#38bdf8">
-            🛠 Admin Dashboard
-        </h1>
+        <h1 style="color:#38bdf8">🛠 Admin Dashboard</h1>
 
         <div class="card">👤 Users: <b>{users}</b></div>
         <div class="card">💳 Payments: <b>{payments}</b></div>
@@ -51,13 +44,10 @@ def admin_dashboard():
 
         <br>
 
-        <div class="card">
-            <a href="/admin/users" style="color:#38bdf8">👤 Manage Users</a><br><br>
-            <a href="/admin/payments" style="color:#38bdf8">💳 Approve Payments</a><br><br>
-            <a href="/admin/signals" style="color:#38bdf8">📊 Create Signals</a><br><br>
-            <a href="/admin/content" style="color:#38bdf8">📁 Upload Content</a><br><br>
-            <a href="/logout" style="color:red">🚪 Logout</a>
-        </div>
+        <a href="/admin/users">👤 Users</a><br><br>
+        <a href="/admin/payments">💳 Payments</a><br><br>
+        <a href="/admin/signals">📊 Signals</a><br><br>
+        <a href="/logout" style="color:red">Logout</a>
 
     </div>
     """)
