@@ -67,8 +67,8 @@ def authenticate(phone, password):
     if not user:
         return None
 
-    # SAFE: works with sqlite Row OR tuple fallback
-    stored_password = user["password"] if isinstance(user, dict) or hasattr(user, "__getitem__") else user[4]
+    # ALWAYS SAFE because sqlite Row is used
+    stored_password = user["password"]
 
     if verify_password(password, stored_password):
         return user
