@@ -1,8 +1,25 @@
-from app import create_app
-from app.db import init_db
+from flask import Flask
+from app.database import init_db
 import os
 
-app = create_app()
+# =========================
+# CREATE FLASK APP
+# =========================
+app = Flask(__name__)
+
+# SECRET KEY
+app.secret_key = "secret123"
+
+# DATABASE PATH
+app.config["DATABASE"] = "database.db"
+
+
+# =========================
+# IMPORT ROUTES
+# =========================
+from app.routes.auth import auth_bp
+
+app.register_blueprint(auth_bp)
 
 
 # =========================
@@ -13,12 +30,12 @@ if __name__ == "__main__":
     print("🚀 Starting PESAMATRIX PRO SaaS...")
 
     # CREATE DATABASE TABLES
-    init_db()
+    init_db(app)
 
     print("✅ Database ready")
     print("🌐 Server starting...")
 
-    # RENDER + LOCAL SUPPORT
+    # RENDER PORT
     port = int(os.environ.get("PORT", 5000))
 
     app.run(
