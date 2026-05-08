@@ -32,17 +32,18 @@ def dashboard():
 
     conn.close()
 
+    # ✅ SAFETY CHECK
+    if not user:
+        session.clear()
+        return redirect("/login")
+
     status_color = "green" if user["status"] == "active" else "red"
 
     return layout(f"""
     <div class="card">
-
-        <h1 style="color:#38bdf8">
-            📱 USER DASHBOARD
-        </h1>
+        <h1 style="color:#38bdf8">📱 USER DASHBOARD</h1>
 
         <div class="card">
-
             👤 Name: {user['name']}<br>
             📱 Phone: {user['phone']}<br>
             🧾 Account: {user['account_number']}<br>
@@ -51,30 +52,14 @@ def dashboard():
             <span style="color:{status_color}">
                 {user['status']}
             </span>
-
         </div>
 
         <br>
-
-        <a href="/signals" style="color:#38bdf8">
-            📊 View Signals
-        </a><br><br>
-
-        <a href="/content" style="color:#38bdf8">
-            📁 Content Gallery
-        </a><br><br>
-
-        <a href="/news" style="color:#38bdf8">
-            📰 News
-        </a><br><br>
-
-        <a href="/payments/status" style="color:#38bdf8">
-            💳 Payment Status
-        </a><br><br>
-
-        <a href="/logout" style="color:red">
-            Logout
-        </a>
+        <a href="/signals">📊 View Signals</a><br><br>
+        <a href="/content">📁 Content Gallery</a><br><br>
+        <a href="/news">📰 News</a><br><br>
+        <a href="/payments/status">💳 Payment Status</a><br><br>
+        <a href="/logout" style="color:red">Logout</a>
 
     </div>
     """)
@@ -84,7 +69,7 @@ def dashboard():
 # SIGNALS (LOCKED SYSTEM)
 # =========================
 @user_bp.route("/signals")
-def signals():
+def signals_page():
 
     if not login_required():
         return redirect("/login")
@@ -98,31 +83,21 @@ def signals():
         (session["user_id"],)
     ).fetchone()
 
-    # 🔒 LOCKED ACCESS
+    if not user:
+        session.clear()
+        return redirect("/login")
+
     if user["status"] != "active":
-
         conn.close()
-
         return layout("""
         <div class="card">
-
-            <h2 style="color:#ff4d4d">
-                🔒 SIGNALS LOCKED
-            </h2>
-
-            <p>
-                You must subscribe to access trading signals.
-            </p>
-
-            <a href="/payments/status"
-               style="color:#38bdf8">
-               Check Payment Status
-            </a>
-
+            <h2 style="color:#ff4d4d">🔒 SIGNALS LOCKED</h2>
+            <p>You must subscribe to access trading signals.</p>
+            <a href="/payments/status">Check Payment Status</a>
         </div>
         """)
 
-    signals = cur.execute(
+    signals_data = cur.execute(
         "SELECT * FROM signals ORDER BY id DESC"
     ).fetchall()
 
@@ -130,28 +105,21 @@ def signals():
 
     html = """
     <div class="card">
-
-        <h2 style="color:#38bdf8">
-            📊 LIVE SIGNALS
-        </h2>
+        <h2 style="color:#38bdf8">📊 LIVE SIGNALS</h2>
     """
 
-    for s in signals:
-
+    for s in signals_data:
         html += f"""
         <div class="card">
-
             📌 Asset: {s['asset']}<br>
             💰 Entry: {s['entry']}<br>
             🎯 TP: {s['tp']}<br>
             🛑 SL: {s['sl']}<br>
             📡 Status: {s['status']}
-
         </div>
         """
 
     html += "</div>"
-
     return layout(html)
 
 
@@ -180,35 +148,25 @@ def payment_status():
 
     conn.close()
 
-    html = """
-    <div class="card">
-
-        <h2 style="color:#38bdf8">
-            💳 PAYMENT STATUS
-        </h2>
-    """
+    html = "<div class='card'><h2>💳 PAYMENT STATUS</h2>"
 
     for p in payments:
-
         html += f"""
         <div class="card">
-
             📱 Phone: {p['phone']}<br>
             💰 Amount: {p['amount']}<br>
             🧾 M-Pesa: {p['mpesa_code']}<br>
             📦 Plan: {p['plan']}<br>
             🔐 Status: {p['status']}
-
         </div>
         """
 
     html += "</div>"
-
     return layout(html)
 
 
 # =========================
-# CONTENT GALLERY
+# CONTENT
 # =========================
 @user_bp.route("/content")
 def content():
@@ -226,38 +184,23 @@ def content():
 
     conn.close()
 
-    html = """
-    <div class="card">
-
-        <h2 style="color:#38bdf8">
-            📁 CONTENT GALLERY
-        </h2>
-    """
+    html = "<div class='card'><h2>📁 CONTENT</h2>"
 
     for i in items:
-
         html += f"""
         <div class="card">
-
-            🏷 Type: {i['type']}<br>
-            📌 Title: {i['title']}<br><br>
-
-            <a href="{i['link']}"
-               target="_blank"
-               style="color:#38bdf8">
-               Open Content
-            </a>
-
+            🏷 {i['type']}<br>
+            📌 {i['title']}<br>
+            <a href="{i['link']}" target="_blank">Open</a>
         </div>
         """
 
     html += "</div>"
-
     return layout(html)
 
 
 # =========================
-# NEWS SYSTEM
+# NEWS
 # =========================
 @user_bp.route("/news")
 def news():
@@ -275,25 +218,15 @@ def news():
 
     conn.close()
 
-    html = """
-    <div class="card">
-
-        <h2 style="color:#38bdf8">
-            📰 LATEST NEWS
-        </h2>
-    """
+    html = "<div class='card'><h2>📰 NEWS</h2>"
 
     for p in posts:
-
         html += f"""
         <div class="card">
-
-            📰 Title: {p['title']}<br>
-            📄 Content: {p['link']}
-
+            📰 {p['title']}<br>
+            📄 {p['link']}
         </div>
         """
 
     html += "</div>"
-
     return layout(html)
