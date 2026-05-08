@@ -1,14 +1,17 @@
 from flask import Flask
-from app.config import Config
 import os
 
 def create_app():
+
     app = Flask(__name__)
 
     # =========================
-    # CONFIG
+    # BASIC CONFIG (RENDER SAFE)
     # =========================
-    app.config.from_object(Config)
+    app.secret_key = os.environ.get("SECRET_KEY", "secret123")
+
+    app.config["DATABASE"] = os.environ.get("DATABASE", "database.db")
+    app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "static/uploads")
 
     # =========================
     # CREATE REQUIRED FOLDERS
@@ -27,39 +30,12 @@ def create_app():
     from app.routes.payments import payments_bp
     from app.routes.content import content_bp
 
-    # =========================
-    # LANDING PAGE (HOME)
-    # =========================
     app.register_blueprint(landing_bp)
-
-    # =========================
-    # AUTH SYSTEM
-    # =========================
     app.register_blueprint(auth_bp)
-
-    # =========================
-    # ADMIN PANEL
-    # =========================
     app.register_blueprint(admin_bp)
-
-    # =========================
-    # USER PANEL
-    # =========================
     app.register_blueprint(user_bp)
-
-    # =========================
-    # SIGNALS
-    # =========================
     app.register_blueprint(signals_bp)
-
-    # =========================
-    # PAYMENTS
-    # =========================
     app.register_blueprint(payments_bp)
-
-    # =========================
-    # CONTENT SYSTEM
-    # =========================
     app.register_blueprint(content_bp)
 
     return app
