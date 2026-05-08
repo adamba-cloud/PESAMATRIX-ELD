@@ -3,6 +3,7 @@ import os
 
 from app.database import DATABASE, init_db
 
+
 # =========================
 # APP CONFIG
 # =========================
@@ -22,7 +23,10 @@ app.config["DATABASE"] = DATABASE
 with app.app_context():
     try:
         print("📦 Using DB:", DATABASE)
+
+        # ✔ INIT DATABASE HERE
         init_db()
+
         print("✅ Database initialized successfully")
 
     except Exception as e:
@@ -52,7 +56,6 @@ app.register_blueprint(admin_bp)
 # =========================
 @app.route("/health")
 def health():
-
     return {
         "status": "running",
         "database": "connected"
