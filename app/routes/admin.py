@@ -1,164 +1,255 @@
-def layout(content, title="Admin Panel"):
+from flask import Blueprint, current_app, redirect, url_for
+from app.utils.ui import layout
+from app.utils.decorators import admin_required
+import sqlite3
 
-    return f"""
-<!DOCTYPE html>
-<html>
-<head>
+admin_bp = Blueprint("admin", __name__)
 
-    <title>{title}</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+# =========================
+# DASHBOARD
+# =========================
+@admin_bp.route("/admin/dashboard")
+@admin_required
+def dashboard():
 
-    <style>
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    cur = conn.cursor()
 
-        body {{
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0b1220;
-            color: white;
-        }}
+    users = cur.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    payments = cur.execute("SELECT COUNT(*) FROM payments").fetchone()[0]
+    signals = cur.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
+    content = cur.execute("SELECT COUNT(*) FROM content").fetchone()[0]
 
-        .container {{
-            display: flex;
-            min-height: 100vh;
-        }}
+    conn.close()
 
-        /* SIDEBAR */
-        .sidebar {{
-            width: 250px;
-            background: #0f172a;
-            padding: 20px;
-        }}
+    return layout(f"""
 
-        .sidebar h2 {{
-            color: #38bdf8;
-            margin-bottom: 30px;
-        }}
+    <div class="card">
+        <h1>🛠 Admin Dashboard</h1>
 
-        .sidebar a {{
-            display: block;
-            padding: 12px;
-            margin-bottom: 10px;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.05);
-        }}
+        <div class="grid">
 
-        .sidebar a:hover {{
-            background: #38bdf8;
-        }}
+            <div class="stat-card">
+                <h2>{users}</h2>
+                <p>Users</p>
+            </div>
 
-        /* MAIN */
-        .main {{
-            flex: 1;
-            padding: 25px;
-        }}
+            <div class="stat-card">
+                <h2>{payments}</h2>
+                <p>Payments</p>
+            </div>
 
-        .card {{
-            background: rgba(255,255,255,0.06);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }}
+            <div class="stat-card">
+                <h2>{signals}</h2>
+                <p>Signals</p>
+            </div>
 
-        .grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-        }}
+            <div class="stat-card">
+                <h2>{content}</h2>
+                <p>Content</p>
+            </div>
 
-        .stat-card {{
-            background: linear-gradient(135deg, #2563eb, #06b6d4);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-        }}
-
-        .stat-card h2 {{
-            margin: 0;
-            font-size: 28px;
-        }}
-
-        .badge {{
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-        }}
-
-        .running {{ background: #22c55e; }}
-        .upcoming {{ background: #f59e0b; }}
-        .expired {{ background: #ef4444; }}
-
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-        }}
-
-        th, td {{
-            padding: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }}
-
-        button {{
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }}
-
-        .approve {{
-            background: #22c55e;
-            color: white;
-        }}
-
-        .reject {{
-            background: #ef4444;
-            color: white;
-        }}
-
-        @media(max-width: 768px) {{
-            .sidebar {{
-                width: 100px;
-            }}
-
-            .sidebar a {{
-                font-size: 12px;
-                padding: 8px;
-            }}
-        }}
-
-    </style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-
-        <h2>⚙ Admin</h2>
-
-        <a href="/admin/dashboard">📊 Dashboard</a>
-        <a href="/admin/users">👥 Users</a>
-        <a href="/admin/payments">💳 Payments</a>
-        <a href="/admin/signals">📈 Signals</a>
-        <a href="/admin/content">📁 Content</a>
-        <a href="/logout" style="color:red;">🚪 Logout</a>
+        </div>
 
     </div>
 
-    <!-- MAIN -->
-    <div class="main">
+    """)
 
-        {content}
 
-    </div>
+# =========================
+# USERS
+# =========================
+@admin_bp.route("/admin/users")
+@admin_required
+def users():
 
-</div>
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
 
-</body>
-</html>
-"""
+    users = cur.execute("SELECT * FROM users ORDER BY id DESC").fetchall()
+
+    conn.close()
+
+    html = """
+    <div class="card">
+        <h2>👥 Users</h2>
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Role</th>
+            </tr>
+    """
+
+    for u in users:
+        html += f"""
+        <tr>
+            <td>{u['id']}</td>
+            <td>{u['phone']}</td>
+            <td>{u['status']}</td>
+            <td>{u['role']}</td>
+        </tr>
+        """
+
+    html += "</table></div>"
+
+    return layout(html)
+
+
+# =========================
+# PAYMENTS
+# =========================
+@admin_bp.route("/admin/payments")
+@admin_required
+def payments():
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    payments = cur.execute("SELECT * FROM payments ORDER BY id DESC").fetchall()
+
+    conn.close()
+
+    html = """
+    <div class="card">
+        <h2>💳 Payments</h2>
+
+        <table>
+            <tr>
+                <th>Phone</th>
+                <th>Amount</th>
+                <th>Code</th>
+                <th>Status</th>
+            </tr>
+    """
+
+    for p in payments:
+        html += f"""
+        <tr>
+            <td>{p['phone']}</td>
+            <td>{p['amount']}</td>
+            <td>{p['mpesa_code']}</td>
+            <td>{p['status']}</td>
+        </tr>
+        """
+
+    html += "</table></div>"
+
+    return layout(html)
+
+
+# =========================
+# SIGNALS
+# =========================
+@admin_bp.route("/admin/signals")
+@admin_required
+def signals():
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    signals = cur.execute("SELECT * FROM signals ORDER BY id DESC").fetchall()
+
+    conn.close()
+
+    html = """
+    <div class="card">
+        <h2>📈 Trade Management</h2>
+    """
+
+    for s in signals:
+
+        status_class = s["status"].lower()
+
+        html += f"""
+        <div class="card">
+
+            <b>{s['asset']}</b><br>
+            Entry: {s['entry']}<br>
+            TP: {s['tp']}<br>
+            SL: {s['sl']}<br><br>
+
+            <span class="badge {status_class}">
+                {s['status']}
+            </span>
+
+            <br><br>
+
+            <a class="button" href="/admin/signal/{s['id']}/Upcoming">Upcoming</a>
+            <a class="button" href="/admin/signal/{s['id']}/Running">Running</a>
+            <a class="button" href="/admin/signal/{s['id']}/Expired">Expired</a>
+
+        </div>
+        """
+
+    html += "</div>"
+
+    return layout(html)
+
+
+# =========================
+# UPDATE SIGNAL STATUS
+# =========================
+@admin_bp.route("/admin/signal/<int:id>/<status>")
+@admin_required
+def update_signal(id, status):
+
+    allowed = ["Upcoming", "Running", "Expired"]
+
+    if status not in allowed:
+        return redirect("/admin/signals")
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE signals SET status=? WHERE id=?",
+        (status, id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/admin/signals")
+
+
+# =========================
+# CONTENT
+# =========================
+@admin_bp.route("/admin/content")
+@admin_required
+def content():
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    items = cur.execute("SELECT * FROM content ORDER BY id DESC").fetchall()
+
+    conn.close()
+
+    html = """
+    <div class="card">
+        <h2>📁 Content</h2>
+
+        <div class="grid">
+    """
+
+    for i in items:
+        html += f"""
+        <div class="card">
+            <b>{i['title']}</b><br>
+            {i['type']}<br><br>
+            <a href="{i['link']}" target="_blank">Open</a>
+        </div>
+        """
+
+    html += "</div></div>"
+
+    return layout(html)
