@@ -1,6 +1,6 @@
-import sqlite3
 import hashlib
 import random
+from app.database import get_db
 
 # =========================
 # PASSWORD SECURITY
@@ -16,8 +16,9 @@ def verify_password(password, hashed):
 # =========================
 # CREATE USER
 # =========================
-def create_user(db, name, phone, email, password):
-    conn = sqlite3.connect(db)
+def create_user(name, phone, email, password):
+
+    conn = get_db()
     cur = conn.cursor()
 
     account_number = str(random.randint(100000, 999999))
@@ -44,9 +45,10 @@ def create_user(db, name, phone, email, password):
 # =========================
 # GET USER
 # =========================
-def get_user(db, phone):
-    conn = sqlite3.connect(db)
-    conn.row_factory = sqlite3.Row
+def get_user(phone):
+
+    conn = get_db()
+    conn.row_factory = None
     cur = conn.cursor()
 
     cur.execute("SELECT * FROM users WHERE phone=?", (phone,))
@@ -59,8 +61,9 @@ def get_user(db, phone):
 # =========================
 # LOGIN USER
 # =========================
-def authenticate(db, phone, password):
-    user = get_user(db, phone)
+def authenticate(phone, password):
+
+    user = get_user(phone)
 
     if not user:
         return None
@@ -69,3 +72,4 @@ def authenticate(db, phone, password):
         return user
 
     return None
+    
