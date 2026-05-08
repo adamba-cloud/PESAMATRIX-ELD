@@ -21,14 +21,9 @@ app.config["DATABASE"] = os.path.join(os.getcwd(), "database.db")
 # IMPORT ROUTES
 # =========================
 from app.routes.auth import auth_bp
+from app.routes.landing import landing_bp   # ✅ ADDED (important for /)
 app.register_blueprint(auth_bp)
-
-# =========================
-# HOME ROUTE (ADD THIS HERE)
-# =========================
-@app.route("/")
-def home():
-    return "🚀 PESAMATRIX PRO is running"
+app.register_blueprint(landing_bp)
 
 # =========================
 # DEBUG ROUTES (IMPORTANT)
