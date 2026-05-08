@@ -1,82 +1,146 @@
-# ================= CONTENT =================
-cur.execute("""
+import sqlite3
+import os
+from werkzeug.security import generate_password_hash
 
-CREATE TABLE IF NOT EXISTS content(
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+# =========================
+# DATABASE PATH
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    type TEXT,
+DATABASE = os.path.join(BASE_DIR, "database.db")
 
-    title TEXT,
 
-    link TEXT,
+# =========================
+# DB CONNECTION
+# =========================
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
-    created_at TIMESTAMP
-    DEFAULT CURRENT_TIMESTAMP
-)
 
-""")
+# =========================
+# INIT DATABASE
+# =========================
+def init_db():
 
-# ================= FILES =================
-cur.execute("""
+    conn = get_db()
+    cur = conn.cursor()
 
-CREATE TABLE IF NOT EXISTS files(
+    # ================= USERS =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        phone TEXT UNIQUE,
+        email TEXT UNIQUE,
+        password TEXT,
+        role TEXT DEFAULT 'user',
+        status TEXT DEFAULT 'inactive',
+        account_number TEXT,
+        telegram_id TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    # ================= PAYMENTS =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS payments(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        phone TEXT,
+        mpesa_code TEXT,
+        amount TEXT,
+        plan TEXT,
+        status TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
 
-    filename TEXT,
+    # ================= SIGNALS =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS signals(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        asset TEXT,
+        entry TEXT,
+        tp TEXT,
+        sl TEXT,
+        status TEXT DEFAULT 'Upcoming',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
 
-    filepath TEXT,
+    # ================= CONTENT =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS content(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        title TEXT,
+        link TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
 
-    type TEXT,
+    # ================= FILES =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS files(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        filename TEXT,
+        filepath TEXT,
+        type TEXT,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
 
-    uploaded_at TIMESTAMP
-    DEFAULT CURRENT_TIMESTAMP
-)
+    # ================= ACCESS CODES =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS access_codes(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        code TEXT UNIQUE,
+        status TEXT DEFAULT 'active',
+        used INTEGER DEFAULT 0,
+        used_at TIMESTAMP,
+        expires_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+        ON DELETE CASCADE
+    )
+    """)
 
-""")
+    # ================= LOGS =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS logs(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        action TEXT,
+        user TEXT,
+        time TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
 
-# ================= ACCESS CODES (UPGRADED) =================
-cur.execute("""
+    # ================= DEFAULT ADMIN =================
+    admin_exists = cur.execute("""
+        SELECT * FROM users WHERE role='admin'
+    """).fetchone()
 
-CREATE TABLE IF NOT EXISTS access_codes(
+    if not admin_exists:
+        cur.execute("""
+        INSERT INTO users (
+            name, phone, email, password, role, status
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            "Admin",
+            "0700000000",
+            "admin@pesamatrix.com",
+            generate_password_hash("admin123"),
+            "admin",
+            "active"
+        ))
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+        print("✅ Default admin created")
 
-    user_id INTEGER,
+    conn.commit()
+    conn.close()
 
-    code TEXT UNIQUE,
-
-    status TEXT DEFAULT 'active',
-
-    used INTEGER DEFAULT 0,
-
-    used_at TIMESTAMP,
-
-    expires_at TIMESTAMP,
-
-    created_at TIMESTAMP
-    DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY(user_id) REFERENCES users(id)
-    ON DELETE CASCADE
-)
-
-""")
-
-# ================= LOGS =================
-cur.execute("""
-
-CREATE TABLE IF NOT EXISTS logs(
-
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    action TEXT,
-
-    user TEXT,
-
-    time TEXT
-    DEFAULT CURRENT_TIMESTAMP
-)
-
-""")
+    print("✅ Database initialized successfully")
