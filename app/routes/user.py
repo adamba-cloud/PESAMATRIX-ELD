@@ -3,7 +3,6 @@ from functools import wraps
 import sqlite3
 from app.utils.ui import layout
 
-
 user_bp = Blueprint("user", __name__)
 
 
@@ -17,13 +16,13 @@ def get_db():
 
 
 # =========================
-# FIXED LOGIN DECORATOR (CRITICAL FIX)
+# FIXED LOGIN GUARD (UPDATED)
 # =========================
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
 
-        if "user_id" not in session:
+        if not session.get("user_id"):
             return redirect("/login")
 
         return f(*args, **kwargs)
@@ -84,7 +83,7 @@ def dashboard():
 
 
 # =========================
-# SIGNALS (FIXED)
+# SIGNALS (LOCK SYSTEM FIXED)
 # =========================
 @user_bp.route("/signals")
 @login_required
