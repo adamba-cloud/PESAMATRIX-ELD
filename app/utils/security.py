@@ -1,6 +1,8 @@
-from flask import session, redirect
+from flask import session
 
 def admin_required():
-    if session.get("role") != "admin":
-        return False
-    return True
+
+    return (
+        session.get("user_id") is not None
+        and session.get("role") == "admin"
+    )
