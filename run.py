@@ -21,7 +21,8 @@ app.config["DATABASE"] = os.path.join(os.getcwd(), "database.db")
 # IMPORT ROUTES
 # =========================
 from app.routes.auth import auth_bp
-from app.routes.landing import landing_bp   # ✅ ADDED (important for /)
+from app.routes.landing import landing_bp
+
 app.register_blueprint(auth_bp)
 app.register_blueprint(landing_bp)
 
@@ -37,8 +38,11 @@ if __name__ == "__main__":
 
     print("🚀 Starting PESAMATRIX PRO SaaS...")
 
-    # CREATE DATABASE TABLES
-    init_db()
+    # =========================
+    # INIT DATABASE (FIXED)
+    # =========================
+    with app.app_context():
+        init_db()
 
     print("✅ Database ready")
     print("🌐 Server starting...")
