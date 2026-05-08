@@ -33,17 +33,31 @@ def pay():
     conn = get_db()
     cur = conn.cursor()
 
+    # get user (IMPORTANT: use account_number system)
+    user = cur.execute(
+        "SELECT phone, account_number FROM users WHERE id=?",
+        (session["user_id"],)
+    ).fetchone()
+
     if request.method == "POST":
 
         cur.execute("""
-            INSERT INTO payments(phone, mpesa_code, amount, plan, status)
-            VALUES(?,?,?,?,?)
+            INSERT INTO payments(
+                phone,
+                mpesa_code,
+                amount,
+                plan,
+                status,
+                account_number
+            )
+            VALUES(?,?,?,?,?,?)
         """, (
-            request.form["phone"],
+            user["phone"],
             request.form["mpesa"],
             request.form["amount"],
             request.form["plan"],
-            "pending"
+            "pending",
+            user["account_number"]
         ))
 
         conn.commit()
@@ -52,8 +66,13 @@ def pay():
         return layout("""
         <div class="card" style="text-align:center">
 
-            <h2 style="color:#22c55e">Payment Submitted ✔</h2>
-            <p>Waiting for admin approval</p>
+            <h2 style="color:#22c55e">
+                ✔ Payment Submitted
+            </h2>
+
+            <p>
+                Waiting for admin approval
+            </p>
 
             <a href="/dashboard" style="color:#38bdf8">
                 Go to Dashboard
@@ -64,15 +83,19 @@ def pay():
 
     conn.close()
 
-    return layout("""
+    return layout(f"""
     <div class="card">
 
-        <h2 style="color:#38bdf8">💳 Subscribe</h2>
+        <h2 style="color:#38bdf8">
+            💳 Subscription Payment
+        </h2>
+
+        <p>
+            Paybill: <b>322372</b><br>
+            Account: <b>{session.get("user_id")}</b>
+        </p>
 
         <form method="POST">
-
-            Phone:<br>
-            <input name="phone" required><br><br>
 
             M-Pesa Code:<br>
             <input name="mpesa" required><br><br>
@@ -91,15 +114,14 @@ def pay():
                 background:#38bdf8;
                 color:black;
                 padding:10px;
-                border:none;
-                border-radius:6px;
                 width:100%;
-            ">Submit Payment</button>
+                border:none;
+                border-radius:8px;
+            ">
+                Submit Payment
+            </button>
 
         </form>
-
-        <br>
-        <p>Paybill: <b>322372</b></p>
 
     </div>
     """)
@@ -123,7 +145,11 @@ def my_payments():
     ).fetchone()
 
     payments = cur.execute(
-        "SELECT * FROM payments WHERE phone=? ORDER BY id DESC",
+        """
+        SELECT * FROM payments
+        WHERE phone=?
+        ORDER BY id DESC
+        """,
         (user["phone"],)
     ).fetchall()
 
@@ -132,23 +158,33 @@ def my_payments():
     html = """
     <div class="card">
 
-        <h2 style="color:#38bdf8">💳 My Payments</h2>
+        <h2 style="color:#38bdf8">
+            💳 My Payments
+        </h2>
     """
 
     for p in payments:
+
+        status_color = "#22c55e" if p["status"] == "approved" else "#f59e0b"
+
         html += f"""
         <div class="card">
 
             📱 {p['phone']}<br>
             💰 {p['amount']}<br>
             🧾 {p['mpesa_code']}<br>
-            📦 {p['plan']}<br>
-            🔐 {p['status']}
+            📦 {p['plan']}<br><br>
+
+            Status:
+            <b style="color:{status_color}">
+                {p['status']}
+            </b>
 
         </div>
         """
 
     html += "</div>"
+
     return layout(html)
 
 
@@ -165,7 +201,10 @@ def admin_payments():
     cur = conn.cursor()
 
     payments = cur.execute(
-        "SELECT * FROM payments ORDER BY id DESC"
+        """
+        SELECT * FROM payments
+        ORDER BY id DESC
+        """
     ).fetchall()
 
     conn.close()
@@ -173,10 +212,13 @@ def admin_payments():
     html = """
     <div class="card">
 
-        <h2 style="color:#38bdf8">💳 Admin Payments</h2>
+        <h2 style="color:#38bdf8">
+            💳 Admin Payments
+        </h2>
     """
 
     for p in payments:
+
         html += f"""
         <div class="card">
 
@@ -184,11 +226,19 @@ def admin_payments():
             Amount: {p['amount']}<br>
             Mpesa: {p['mpesa_code']}<br>
             Plan: {p['plan']}<br>
-            Status: {p['status']}<br><br>
+            Account: {p.get('account_number','-')}<br>
+            Status: <b>{p['status']}</b><br><br>
 
-            <form method="POST" action="/admin/approve-payment">
+            <form method="POST"
+                  action="/admin/approve-payment">
 
-                <input type="hidden" name="phone" value="{p['phone']}">
+                <input type="hidden"
+                       name="payment_id"
+                       value="{p['id']}">
+
+                <input type="hidden"
+                       name="account_number"
+                       value="{p.get('account_number','')}">
 
                 <button style="
                     background:#22c55e;
@@ -206,11 +256,12 @@ def admin_payments():
         """
 
     html += "</div>"
+
     return layout(html)
 
 
 # =========================
-# ADMIN APPROVE PAYMENT
+# ADMIN APPROVE PAYMENT (SAFE VERSION)
 # =========================
 @payments_bp.route("/admin/approve-payment", methods=["POST"])
 def approve_payment():
@@ -218,20 +269,30 @@ def approve_payment():
     if session.get("role") != "admin":
         return redirect("/login")
 
-    phone = request.form["phone"]
+    payment_id = request.form["payment_id"]
+    account_number = request.form["account_number"]
 
     conn = get_db()
     cur = conn.cursor()
 
+    # approve payment
     cur.execute(
-        "UPDATE payments SET status='approved' WHERE phone=?",
-        (phone,)
+        """
+        UPDATE payments
+        SET status='approved'
+        WHERE id=?
+        """,
+        (payment_id,)
     )
 
-    # activate user
+    # activate user using account number (SAFE WAY)
     cur.execute(
-        "UPDATE users SET status='active' WHERE phone=?",
-        (phone,)
+        """
+        UPDATE users
+        SET status='active'
+        WHERE account_number=?
+        """,
+        (account_number,)
     )
 
     conn.commit()
