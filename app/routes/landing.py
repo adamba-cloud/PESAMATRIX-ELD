@@ -8,7 +8,7 @@ landing_bp = Blueprint("landing", __name__)
 def home():
 
     return layout("""
-
+    
     <!-- NAVBAR -->
     <div style="
         background:#111a2e;
@@ -25,14 +25,12 @@ def home():
         </h2>
 
         <div>
-            <a href="/login"
-               style="color:white;margin-right:15px;text-decoration:none">
-               Login
+            <a href="/login" style="color:white;margin-right:15px;text-decoration:none">
+                Login
             </a>
 
-            <a href="/register"
-               style="color:#38bdf8;text-decoration:none">
-               Register
+            <a href="/register" style="color:#38bdf8;text-decoration:none">
+                Register
             </a>
         </div>
 
@@ -97,9 +95,7 @@ def home():
     <!-- HOW IT WORKS -->
     <div class="card" style="text-align:center">
 
-        <h2 style="color:#38bdf8">
-            How It Works
-        </h2>
+        <h2 style="color:#38bdf8">How It Works</h2>
 
         <p>1. Register an account</p>
         <p>2. Pay subscription (Paybill 322372)</p>
@@ -112,9 +108,7 @@ def home():
     <!-- PRICING -->
     <div class="card" style="text-align:center">
 
-        <h2 style="color:#38bdf8">
-            Subscription Plans
-        </h2>
+        <h2 style="color:#38bdf8">Subscription Plans</h2>
 
         <p>Daily Plan - Affordable access</p>
         <p>Weekly Plan - Best value</p>
@@ -126,9 +120,7 @@ def home():
     <!-- PAYMENT INFO -->
     <div class="card" style="text-align:center">
 
-        <h2 style="color:#38bdf8">
-            Payment Details
-        </h2>
+        <h2 style="color:#38bdf8">Payment Details</h2>
 
         <p>💰 Paybill: <b>322372</b></p>
         <p>📌 Account Number: Your registered account number</p>
@@ -139,19 +131,13 @@ def home():
     <!-- CONTACT -->
     <div class="card" style="text-align:center">
 
-        <h2 style="color:#38bdf8">
-            Contact Us
-        </h2>
+        <h2 style="color:#38bdf8">Contact Us</h2>
 
         <p>
             📞
-            <a href="tel:+254781585319" style="color:#38bdf8">
-                +254781585319
-            </a>
+            <a href="tel:+254781585319" style="color:#38bdf8">+254781585319</a>
             |
-            <a href="tel:+254717434943" style="color:#38bdf8">
-                +254717434943
-            </a>
+            <a href="tel:+254717434943" style="color:#38bdf8">+254717434943</a>
         </p>
 
         <p>
@@ -159,7 +145,7 @@ def home():
             <a href="https://tiktok.com/@smartgoldsignals"
                target="_blank"
                style="color:#38bdf8">
-               tiktok.com/@smartgoldsignals
+               TikTok Profile
             </a>
         </p>
 
@@ -167,11 +153,7 @@ def home():
 
 
     <!-- FOOTER -->
-    <div style="
-        text-align:center;
-        padding:20px;
-        color:#666;
-    ">
+    <div style="text-align:center;padding:20px;color:#666;">
         © 2026 PESAMATRIX PRO - All Rights Reserved
     </div>
 
