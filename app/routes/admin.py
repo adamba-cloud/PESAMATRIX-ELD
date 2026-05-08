@@ -65,20 +65,28 @@ def admin_dashboard():
             🛠 ADMIN DASHBOARD
         </h1>
 
-        <div class="card">
-            👤 Users: <b>{users}</b>
-        </div>
+        <div class="grid">
 
-        <div class="card">
-            💳 Payments: <b>{payments}</b>
-        </div>
+            <div class="stat-card">
+                <h2>{users}</h2>
+                <p>👤 Users</p>
+            </div>
 
-        <div class="card">
-            📊 Signals: <b>{signals}</b>
-        </div>
+            <div class="stat-card">
+                <h2>{payments}</h2>
+                <p>💳 Payments</p>
+            </div>
 
-        <div class="card">
-            📁 Content: <b>{content}</b>
+            <div class="stat-card">
+                <h2>{signals}</h2>
+                <p>📊 Signals</p>
+            </div>
+
+            <div class="stat-card">
+                <h2>{content}</h2>
+                <p>📁 Content</p>
+            </div>
+
         </div>
 
         <br>
@@ -99,14 +107,18 @@ def admin_dashboard():
             📁 Upload Content
         </a><br><br>
 
-        <a href="/logout" style="color:red">
+        <a href="/logout"
+           style="
+           background:#ef4444;
+           color:white;
+           ">
             Logout
         </a>
 
     </div>
 
     """)
-    
+
 
 # =========================
 # TRADE MANAGEMENT
@@ -137,27 +149,44 @@ def manage_signals():
 
     for s in signals:
 
+        status_class = s["status"].lower()
+
         html += f"""
 
         <div class="card">
 
-            📌 {s['asset']}<br>
-            💰 Entry: {s['entry']}<br>
-            🎯 TP: {s['tp']}<br>
-            🛑 SL: {s['sl']}<br><br>
+            <h3 style="color:#38bdf8">
+                📌 {s['asset']}
+            </h3>
+
+            💰 Entry:
+            <b>{s['entry']}</b><br><br>
+
+            🎯 Take Profit:
+            <b>{s['tp']}</b><br><br>
+
+            🛑 Stop Loss:
+            <b>{s['sl']}</b><br><br>
 
             Current Status:
-            <b>{s['status']}</b>
+
+            <span class="badge {status_class}">
+                {s['status']}
+            </span>
 
             <br><br>
 
             <a href="/admin/signal/{s['id']}/Upcoming">
                 Upcoming
-            </a> |
+            </a>
+
+            |
 
             <a href="/admin/signal/{s['id']}/Running">
                 Running
-            </a> |
+            </a>
+
+            |
 
             <a href="/admin/signal/{s['id']}/Expired">
                 Expired
@@ -179,12 +208,19 @@ def manage_signals():
 @admin_required
 def update_signal_status(id, status):
 
-    allowed = ["Upcoming", "Running", "Expired"]
+    allowed = [
+        "Upcoming",
+        "Running",
+        "Expired"
+    ]
 
     if status not in allowed:
         return redirect("/admin/signals")
 
-    conn = sqlite3.connect(current_app.config["DATABASE"])
+    conn = sqlite3.connect(
+        current_app.config["DATABASE"]
+    )
+
     cur = conn.cursor()
 
     cur.execute(
@@ -201,7 +237,10 @@ def update_signal_status(id, status):
 # =========================
 # CONTENT MANAGEMENT
 # =========================
-@admin_bp.route("/admin/content", methods=["GET", "POST"])
+@admin_bp.route(
+    "/admin/content",
+    methods=["GET", "POST"]
+)
 @admin_required
 def content_upload():
 
@@ -219,40 +258,61 @@ def content_upload():
 
         if file and file.filename != "":
 
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            os.makedirs(
+                UPLOAD_FOLDER,
+                exist_ok=True
+            )
 
-            filename = secure_filename(file.filename)
+            filename = secure_filename(
+                file.filename
+            )
 
-            uploaded_path = f"{UPLOAD_FOLDER}/{filename}"
+            uploaded_path = (
+                f"{UPLOAD_FOLDER}/{filename}"
+            )
 
             file.save(uploaded_path)
 
             message = """
-            <div class="card" style="color:lime">
+
+            <div class="success">
                 ✅ Upload Successful
             </div>
+
             """
 
         elif link:
+
             uploaded_path = link
 
             message = """
-            <div class="card" style="color:lime">
+
+            <div class="success">
                 ✅ Link Saved Successfully
             </div>
+
             """
 
-        conn = sqlite3.connect(current_app.config["DATABASE"])
+        conn = sqlite3.connect(
+            current_app.config["DATABASE"]
+        )
+
         cur = conn.cursor()
 
         cur.execute(
             """
+
             INSERT INTO content
             (title, type, link)
 
             VALUES (?, ?, ?)
+
             """,
-            (title, content_type, uploaded_path)
+            (
+                title,
+                content_type,
+                uploaded_path
+            )
         )
 
         conn.commit()
@@ -278,44 +338,36 @@ def content_upload():
                 required
             >
 
-            <br><br>
-
             <select name="type">
 
                 <option value="image">
-                    Image
+                    🖼 Image
                 </option>
 
                 <option value="video">
-                    Video
+                    🎥 Video
                 </option>
 
                 <option value="news">
-                    News
+                    📰 News
                 </option>
 
                 <option value="link">
-                    External Link
+                    🔗 External Link
                 </option>
 
             </select>
-
-            <br><br>
 
             <input
                 type="file"
                 name="file"
             >
 
-            <br><br>
-
             <input
                 type="text"
                 name="link"
                 placeholder="External Link (optional)"
             >
-
-            <br><br>
 
             <button type="submit">
 
