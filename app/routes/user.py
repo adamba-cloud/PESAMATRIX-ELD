@@ -1,7 +1,7 @@
 from flask import Blueprint, session, redirect, current_app
-from functools import wraps
-import sqlite3
 from app.utils.ui import layout
+from app.utils.decorators import login_required, admin_required
+import sqlite3
 
 user_bp = Blueprint("user", __name__)
 
@@ -10,24 +10,14 @@ user_bp = Blueprint("user", __name__)
 # DB HELPER
 # =========================
 def get_db():
-    conn = sqlite3.connect(current_app.config["DATABASE"])
+
+    conn = sqlite3.connect(
+        current_app.config["DATABASE"]
+    )
+
     conn.row_factory = sqlite3.Row
+
     return conn
-
-
-# =========================
-# FIXED LOGIN GUARD (UPDATED)
-# =========================
-def login_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-
-        if not session.get("user_id"):
-            return redirect("/login")
-
-        return f(*args, **kwargs)
-
-    return wrapper
 
 
 # =========================
@@ -41,7 +31,11 @@ def dashboard():
     cur = conn.cursor()
 
     user = cur.execute(
-        "SELECT * FROM users WHERE id=?",
+        """
+        SELECT *
+        FROM users
+        WHERE id=?
+        """,
         (session["user_id"],)
     ).fetchone()
 
@@ -51,39 +45,47 @@ def dashboard():
         session.clear()
         return redirect("/login")
 
-    status_color = "#22c55e" if user["status"] == "active" else "#ef4444"
+    status_color = (
+        "#22c55e"
+        if user["status"] == "active"
+        else "#ef4444"
+    )
 
     return layout(f"""
-        <div class="card">
 
-            <h1>👤 USER DASHBOARD</h1>
+    <div class="card">
 
-            <p>Name: {user['name']}</p>
-            <p>Phone: {user['phone']}</p>
-            <p>Account: {user['account_number']}</p>
+        <h1>👤 USER DASHBOARD</h1>
 
-            <p>
-                Status:
-                <b style="color:{status_color}">
-                    {user['status']}
-                </b>
-            </p>
+        <p>Name: {user['name']}</p>
+        <p>Phone: {user['phone']}</p>
+        <p>Account: {user['account_number']}</p>
 
-            <hr>
+        <p>
+            Status:
+            <b style="color:{status_color}">
+                {user['status']}
+            </b>
+        </p>
 
-            <a href="/signals">📊 Signals</a><br>
-            <a href="/content">📁 Content</a><br>
-            <a href="/news">📰 News</a><br>
-            <a href="/payments/status">💳 Payments</a><br><br>
+        <hr>
 
-            <a href="/logout" style="color:red">Logout</a>
+        <a href="/signals">📊 Signals</a><br>
+        <a href="/content">📁 Content</a><br>
+        <a href="/news">📰 News</a><br>
+        <a href="/payments/status">💳 Payments</a><br><br>
 
-        </div>
+        <a href="/logout" style="color:red">
+            Logout
+        </a>
+
+    </div>
+
     """)
 
 
 # =========================
-# SIGNALS (LOCK SYSTEM FIXED)
+# SIGNALS
 # =========================
 @user_bp.route("/signals")
 @login_required
@@ -93,7 +95,11 @@ def signals():
     cur = conn.cursor()
 
     user = cur.execute(
-        "SELECT status FROM users WHERE id=?",
+        """
+        SELECT status
+        FROM users
+        WHERE id=?
+        """,
         (session["user_id"],)
     ).fetchone()
 
@@ -104,36 +110,58 @@ def signals():
 
     # LOCK SYSTEM
     if user["status"] != "active":
+
         conn.close()
+
         return layout("""
-            <div class="card">
 
-                <h2>🔒 SIGNALS LOCKED</h2>
+        <div class="card">
 
-                <p>Activate account to access signals.</p>
+            <h2>🔒 SIGNALS LOCKED</h2>
 
-                <a href="/payments/status">Check Payment</a>
+            <p>Activate account to access signals.</p>
 
-            </div>
+            <a href="/payments/status">
+                Check Payment
+            </a>
+
+        </div>
+
         """)
 
     signals = cur.execute(
-        "SELECT * FROM signals ORDER BY id DESC"
+        """
+        SELECT *
+        FROM signals
+        ORDER BY id DESC
+        """
     ).fetchall()
 
     conn.close()
 
-    html = "<div class='card'><h2>📊 LIVE SIGNALS</h2>"
+    html = """
+
+    <div class="card">
+
+        <h2>📊 LIVE SIGNALS</h2>
+
+    """
 
     for s in signals:
+
         html += f"""
+
         <div class="card">
+
             <h3>{s['asset']}</h3>
+
             Entry: {s['entry']}<br>
             TP: {s['tp']}<br>
             SL: {s['sl']}<br>
             Status: {s['status']}
+
         </div>
+
         """
 
     html += "</div>"
@@ -152,28 +180,48 @@ def payments():
     cur = conn.cursor()
 
     user = cur.execute(
-        "SELECT phone FROM users WHERE id=?",
+        """
+        SELECT phone
+        FROM users
+        WHERE id=?
+        """,
         (session["user_id"],)
     ).fetchone()
 
     payments = cur.execute(
-        "SELECT * FROM payments WHERE phone=?",
+        """
+        SELECT *
+        FROM payments
+        WHERE phone=?
+        ORDER BY id DESC
+        """,
         (user["phone"],)
     ).fetchall()
 
     conn.close()
 
-    html = "<div class='card'><h2>💳 PAYMENT STATUS</h2>"
+    html = """
+
+    <div class="card">
+
+        <h2>💳 PAYMENT STATUS</h2>
+
+    """
 
     for p in payments:
+
         html += f"""
+
         <div class="card">
+
             Phone: {p['phone']}<br>
             Amount: {p['amount']}<br>
             Code: {p['mpesa_code']}<br>
             Plan: {p['plan']}<br>
             Status: {p['status']}
+
         </div>
+
         """
 
     html += "</div>"
@@ -192,20 +240,41 @@ def content():
     cur = conn.cursor()
 
     items = cur.execute(
-        "SELECT * FROM content ORDER BY id DESC"
+        """
+        SELECT *
+        FROM content
+        ORDER BY id DESC
+        """
     ).fetchall()
 
     conn.close()
 
-    html = "<div class='card'><h2>📁 CONTENT</h2>"
+    html = """
+
+    <div class="card">
+
+        <h2>📁 CONTENT</h2>
+
+    """
 
     for i in items:
+
         html += f"""
+
         <div class="card">
+
             {i['type']}<br>
             {i['title']}<br>
-            <a href="{i['link']}" target="_blank">Open</a>
+
+            <a href="{i['link']}"
+               target="_blank">
+
+               Open
+
+            </a>
+
         </div>
+
         """
 
     html += "</div>"
@@ -224,19 +293,34 @@ def news():
     cur = conn.cursor()
 
     posts = cur.execute(
-        "SELECT * FROM content WHERE type='news'"
+        """
+        SELECT *
+        FROM content
+        WHERE type='news'
+        """
     ).fetchall()
 
     conn.close()
 
-    html = "<div class='card'><h2>📰 NEWS</h2>"
+    html = """
+
+    <div class="card">
+
+        <h2>📰 NEWS</h2>
+
+    """
 
     for p in posts:
+
         html += f"""
+
         <div class="card">
+
             {p['title']}<br>
             {p['link']}
+
         </div>
+
         """
 
     html += "</div>"
