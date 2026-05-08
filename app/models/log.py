@@ -1,93 +1,58 @@
-import sqlite3
-from datetime import datetime
+from flask import Blueprint, request, session, redirect, url_for, render_template
+from app.services.auth_service import authenticate
+
+# =========================
+# BLUEPRINT
+# =========================
+auth_bp = Blueprint("auth", __name__)
 
 
 # =========================
-# CREATE LOG TABLE
+# LOGIN
 # =========================
-def create_log_table(db_path):
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
 
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
+    # Show login page
+    if request.method == "GET":
+        return render_template("login.html")
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS logs (
+    # Get form data
+    phone = request.form.get("phone")
+    password = request.form.get("password")
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    # Authenticate user
+    user = authenticate(phone, password)
 
-        action TEXT NOT NULL,     -- e.g login, payment, signal_update
-        user TEXT,                -- phone or user id
-        details TEXT,             -- extra info
+    # Invalid login
+    if not user:
+        return render_template(
+            "login.html",
+            error="Invalid phone or password"
+        )
 
-        created_at TEXT DEFAULT (datetime('now'))
+    # =========================
+    # SAVE SESSION
+    # =========================
+    session["user_id"] = user["id"]
+    session["role"] = user["role"]
+    session["account"] = user["account_number"]
 
-    )
-    """)
+    # =========================
+    # REDIRECT
+    # =========================
+    if user["role"] == "admin":
+        return redirect(url_for("admin.dashboard"))
 
-    conn.commit()
-    conn.close()
-
-
-# =========================
-# ADD LOG ENTRY
-# =========================
-def add_log(db_path, action, user, details=""):
-
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
-
-    cur.execute("""
-        INSERT INTO logs (action, user, details)
-        VALUES (?, ?, ?)
-    """, (action, user, details))
-
-    conn.commit()
-    conn.close()
+    return redirect(url_for("user.dashboard"))
 
 
 # =========================
-# GET ALL LOGS (ADMIN)
+# LOGOUT
 # =========================
-def get_logs(db_path):
+@auth_bp.route("/logout")
+def logout():
 
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
+    session.clear()
 
-    data = cur.execute("""
-        SELECT *
-        FROM logs
-        ORDER BY id DESC
-    """).fetchall()
-
-    conn.close()
-    return data
-
-
-# =========================
-# LOG USER LOGIN
-# =========================
-def log_login(db_path, phone):
-
-    add_log(db_path, "login", phone, "User logged in")
-
-
-# =========================
-# LOG PAYMENT
-# =========================
-def log_payment(db_path, phone, amount):
-
-    add_log(db_path, "payment", phone, f"Payment submitted: {amount}")
-
-
-# =========================
-# LOG SIGNAL UPDATE
-# =========================
-def log_signal_update(db_path, user, signal_id, status):
-
-    add_log(
-        db_path,
-        "signal_update",
-        user,
-        f"Signal {signal_id} changed to {status}"
-    )
+    return redirect(url_for("auth.login"))
