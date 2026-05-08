@@ -2,6 +2,7 @@ from flask import Flask
 import os
 
 from app.database import DATABASE, init_db
+from app.logging_middleware import log_request
 
 
 # =========================
@@ -9,13 +10,20 @@ from app.database import DATABASE, init_db
 # =========================
 app = Flask(__name__)
 
-# 🔐 SECRET KEY (FIXED)
+# 🔐 SECRET KEY
 app.secret_key = os.environ.get(
     "SECRET_KEY",
     "super_secure_key_change_this"
 )
 
+# 📦 DATABASE CONFIG
 app.config["DATABASE"] = DATABASE
+
+
+# =========================
+# REGISTER AFTER REQUEST HOOK (LOGGING)
+# =========================
+app.after_request(log_request)
 
 
 # =========================
