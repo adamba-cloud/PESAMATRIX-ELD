@@ -1,32 +1,21 @@
 from flask import Flask
 import os
 
-# =========================
-# CREATE FLASK APP
-# =========================
 app = Flask(__name__)
 
-# =========================
-# SECURITY
-# =========================
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")
 
 # =========================
-# DATABASE PATH
+# USE SAME DATABASE EVERYWHERE
 # =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+from app.database import DATABASE, init_db
 
-app.config["DATABASE"] = os.path.join(
-    BASE_DIR,
-    "database.db"
-)
+app.config["DATABASE"] = DATABASE
 
 # =========================
 # INIT DATABASE
 # =========================
 with app.app_context():
-
-    from app.database import init_db, DATABASE
 
     print("USING DB:", DATABASE)
 
@@ -57,8 +46,6 @@ print(app.url_map)
 # START SERVER
 # =========================
 if __name__ == "__main__":
-
-    print("🚀 Starting PESAMATRIX PRO SaaS...")
 
     port = int(os.environ.get("PORT", 5000))
 
