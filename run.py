@@ -7,20 +7,21 @@ import os
 # =========================
 app = Flask(__name__)
 
-# SECRET KEY
-app.secret_key = "secret123"
+# =========================
+# SECURITY
+# =========================
+app.secret_key = os.environ.get("SECRET_KEY", "secret123")
 
-# DATABASE PATH
-app.config["DATABASE"] = "database.db"
-
+# =========================
+# DATABASE PATH (RENDER SAFE)
+# =========================
+app.config["DATABASE"] = os.path.join(os.getcwd(), "database.db")
 
 # =========================
 # IMPORT ROUTES
 # =========================
 from app.routes.auth import auth_bp
-
 app.register_blueprint(auth_bp)
-
 
 # =========================
 # START SERVER
@@ -30,12 +31,11 @@ if __name__ == "__main__":
     print("🚀 Starting PESAMATRIX PRO SaaS...")
 
     # CREATE DATABASE TABLES
-    init_db(app)
+    init_db()   # ✅ FIXED (no app passed)
 
     print("✅ Database ready")
     print("🌐 Server starting...")
 
-    # RENDER PORT
     port = int(os.environ.get("PORT", 5000))
 
     app.run(
