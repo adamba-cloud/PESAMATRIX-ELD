@@ -1,100 +1,35 @@
-import hashlib
-import random
-from app.database import get_db
+import sqlite3
+from flask import current_app
+
+def get_db():
+    return sqlite3.connect(current_app.config["DATABASE"])
 
 
-# =========================
-# PASSWORD SECURITY
-# =========================
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
-
-
-def verify_password(password: str, hashed: str) -> bool:
-    return hash_password(password) == hashed
-
-
-# =========================
-# SAFE DICT CONVERTER
-# =========================
-def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
-
-
-# =========================
-# CREATE USER
-# =========================
-def create_user(name, phone, email, password):
+def authenticate(phone, password):
 
     conn = get_db()
-    conn.row_factory = dict_factory
+    conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
-    try:
-        account_number = str(random.randint(100000, 999999))
-
-        cur.execute("""
-            INSERT INTO users(
-                name,
-                phone,
-                email,
-                password,
-                role,
-                status,
-                account_number
-            )
-            VALUES(?,?,?,?,?,?,?)
-        """, (
-            name,
-            phone,
-            email,
-            hash_password(password),
-            "user",
-            "inactive",
-            account_number
-        ))
-
-        conn.commit()
-        return account_number
-
-    except Exception as e:
-        conn.rollback()
-        raise e
-
-    finally:
-        conn.close()
-
-
-# =========================
-# GET USER BY PHONE
-# =========================
-def get_user(phone):
-
-    conn = get_db()
-    conn.row_factory = dict_factory
-    cur = conn.cursor()
-
-    cur.execute("SELECT * FROM users WHERE phone=?", (phone,))
-    user = cur.fetchone()
+    user = cur.execute(
+        "SELECT * FROM users WHERE phone=? AND password=?",
+        (phone, password)
+    ).fetchone()
 
     conn.close()
     return user
 
 
-# =========================
-# AUTHENTICATE USER (FIXED)
-# =========================
-def authenticate(phone, password):
+def set_admin(phone):
 
-    user = get_user(phone)
+    conn = get_db()
+    cur = conn.cursor()
 
-    if not user:
-        return None
+    cur.execute("""
+        UPDATE users
+        SET role='admin'
+        WHERE phone=?
+    """, (phone,))
 
-    if verify_password(password, user["password"]):
-        return user
-
-    return None
+    conn.commit()
+    conn.close()
