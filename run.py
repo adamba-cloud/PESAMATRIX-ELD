@@ -61,6 +61,37 @@ def make_admin():
 
     return "✅ Admin updated successfully"
 
+
+# =========================
+# CHECK USERS
+# =========================
+@app.route("/check-users")
+def check_users():
+
+    conn = sqlite3.connect(app.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    users = cur.execute("""
+        SELECT id, phone, role
+        FROM users
+    """).fetchall()
+
+    conn.close()
+
+    result = ""
+
+    for u in users:
+
+        result += f"""
+        ID: {u['id']} |
+        Phone: {u['phone']} |
+        Role: {u['role']} <br>
+        """
+
+    return result
+
+
 # =========================
 # DEBUG ROUTES
 # =========================
