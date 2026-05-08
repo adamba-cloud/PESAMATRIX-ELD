@@ -24,6 +24,11 @@ from app.routes.auth import auth_bp
 app.register_blueprint(auth_bp)
 
 # =========================
+# DEBUG ROUTES (IMPORTANT)
+# =========================
+print(app.url_map)
+
+# =========================
 # START SERVER
 # =========================
 if __name__ == "__main__":
@@ -31,7 +36,7 @@ if __name__ == "__main__":
     print("🚀 Starting PESAMATRIX PRO SaaS...")
 
     # CREATE DATABASE TABLES
-    init_db()   # ✅ FIXED (no app passed)
+    init_db()
 
     print("✅ Database ready")
     print("🌐 Server starting...")
