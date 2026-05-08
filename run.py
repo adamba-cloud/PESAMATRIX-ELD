@@ -24,6 +24,13 @@ from app.routes.auth import auth_bp
 app.register_blueprint(auth_bp)
 
 # =========================
+# HOME ROUTE (ADD THIS HERE)
+# =========================
+@app.route("/")
+def home():
+    return "🚀 PESAMATRIX PRO is running"
+
+# =========================
 # DEBUG ROUTES (IMPORTANT)
 # =========================
 print(app.url_map)
