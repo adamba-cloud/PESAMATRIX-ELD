@@ -5,7 +5,7 @@ landing_bp = Blueprint("landing", __name__)
 
 
 # =========================
-# HOME PAGE
+# HOME PAGE (PUBLIC)
 # =========================
 @landing_bp.route("/")
 def home():
@@ -28,27 +28,52 @@ def home():
         </h2>
 
         <div>
-            <a href="/login" style="color:white;margin-right:15px;text-decoration:none">
+
+            <a href="/login"
+               style="
+                    color:white;
+                    margin-right:15px;
+                    text-decoration:none
+               ">
+
                 Login
+
             </a>
 
-            <a href="/register" style="color:#38bdf8;text-decoration:none">
+            <a href="/register"
+               style="
+                    color:#38bdf8;
+                    text-decoration:none
+               ">
+
                 Register
+
             </a>
+
         </div>
 
     </div>
 
 
     <!-- HERO -->
-    <div class="card" style="text-align:center;padding:50px 20px">
+    <div class="card"
+        style="text-align:center;padding:50px 20px">
 
-        <h1 style="font-size:38px;color:#38bdf8;margin-bottom:10px">
+        <h1 style="
+            font-size:38px;
+            color:#38bdf8;
+            margin-bottom:10px
+        ">
+
             Smart Trading & Copy System
+
         </h1>
 
         <p style="color:#cbd5e1;font-size:16px">
-            Forex & Crypto signals platform built for consistent traders
+
+            Forex & Crypto signals platform built
+            for consistent traders
+
         </p>
 
         <br>
@@ -62,7 +87,9 @@ def home():
                 border-radius:8px;
                 font-weight:bold;
            ">
-           🚀 Get Started
+
+            🚀 Get Started
+
         </a>
 
     </div>
@@ -96,7 +123,11 @@ def home():
             How It Works
         </h2>
 
-        <div style="text-align:center;line-height:2;color:#cbd5e1">
+        <div style="
+            text-align:center;
+            line-height:2;
+            color:#cbd5e1
+        ">
 
             1. Create an account<br>
             2. Pay via Paybill <b>322372</b><br>
@@ -116,7 +147,11 @@ def home():
             Subscription Plans
         </h2>
 
-        <div style="text-align:center;line-height:2;color:#cbd5e1">
+        <div style="
+            text-align:center;
+            line-height:2;
+            color:#cbd5e1
+        ">
 
             Daily Plan – Affordable access<br>
             Weekly Plan – Best value<br>
@@ -127,10 +162,13 @@ def home():
     </div>
 
 
-    <!-- PAYMENT INFO -->
-    <div class="card" style="text-align:center">
+    <!-- PAYMENT -->
+    <div class="card"
+        style="text-align:center">
 
-        <h2 style="color:#38bdf8">Payment Details</h2>
+        <h2 style="color:#38bdf8">
+            Payment Details
+        </h2>
 
         <p>💰 Paybill: <b>322372</b></p>
         <p>📌 Account: Your registration number</p>
@@ -139,14 +177,32 @@ def home():
 
 
     <!-- CONTACT -->
-    <div class="card" style="text-align:center">
+    <div class="card"
+        style="text-align:center">
 
-        <h2 style="color:#38bdf8">Contact</h2>
+        <h2 style="color:#38bdf8">
+            Contact
+        </h2>
 
         <p>
-            📞 <a href="tel:+254781585319" style="color:#38bdf8">+254781585319</a>
+
+            📞
+            <a href="tel:+254781585319"
+               style="color:#38bdf8">
+
+                +254781585319
+
+            </a>
+
             |
-            <a href="tel:+254717434943" style="color:#38bdf8">+254717434943</a>
+
+            <a href="tel:+254717434943"
+               style="color:#38bdf8">
+
+                +254717434943
+
+            </a>
+
         </p>
 
     </div>
@@ -159,7 +215,9 @@ def home():
         color:#64748b;
         font-size:13px;
     ">
+
         © 2026 PESAMATRIX PRO
+
     </div>
 
     """)
