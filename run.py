@@ -1,19 +1,20 @@
 from flask import Flask
 import os
+import sqlite3
 
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")
 
 # =========================
-# USE SAME DATABASE EVERYWHERE
+# DATABASE
 # =========================
 from app.database import DATABASE, init_db
 
 app.config["DATABASE"] = DATABASE
 
 # =========================
-# INIT DATABASE
+# INIT DB
 # =========================
 with app.app_context():
 
@@ -29,7 +30,7 @@ with app.app_context():
 from app.routes.landing import landing_bp
 from app.routes.auth import auth_bp
 from app.routes.user import user_bp
-from app.routes.admin import admin_bp   # 🔥 ADDED
+from app.routes.admin import admin_bp
 
 # =========================
 # REGISTER BLUEPRINTS
@@ -37,7 +38,28 @@ from app.routes.admin import admin_bp   # 🔥 ADDED
 app.register_blueprint(landing_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
-app.register_blueprint(admin_bp)        # 🔥 ADDED
+app.register_blueprint(admin_bp)
+
+# =========================
+# TEMP ADMIN CREATOR
+# DELETE AFTER USE
+# =========================
+@app.route("/make-admin")
+def make_admin():
+
+    conn = sqlite3.connect(app.config["DATABASE"])
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE users
+        SET role='admin'
+        WHERE phone='0712345678'
+    """)
+
+    conn.commit()
+    conn.close()
+
+    return "✅ Admin updated successfully"
 
 # =========================
 # DEBUG ROUTES
