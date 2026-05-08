@@ -10,9 +10,10 @@ admin_bp = Blueprint("admin", __name__)
 
 
 # =========================
-# ROOT ADMIN ROUTE (FIX)
+# ROOT ADMIN ROUTE
 # =========================
 @admin_bp.route("/admin")
+@admin_bp.route("/admin/")
 def admin_root():
     return redirect("/admin/dashboard")
 
@@ -23,6 +24,7 @@ def admin_root():
 @admin_bp.route("/admin/dashboard")
 def admin_dashboard():
 
+    # 🔒 SECURITY CHECK
     if not admin_required():
         return redirect("/login")
 
@@ -43,42 +45,18 @@ def admin_dashboard():
             🛠 Admin Dashboard
         </h1>
 
-        <div class="card">
-            👤 Users: <b>{users}</b>
-        </div>
-
-        <div class="card">
-            💳 Payments: <b>{payments}</b>
-        </div>
-
-        <div class="card">
-            📊 Signals: <b>{signals}</b>
-        </div>
+        <div class="card">👤 Users: <b>{users}</b></div>
+        <div class="card">💳 Payments: <b>{payments}</b></div>
+        <div class="card">📊 Signals: <b>{signals}</b></div>
 
         <br>
 
         <div class="card">
-
-            <a href="/admin/users" style="color:#38bdf8">
-                👤 Manage Users
-            </a><br><br>
-
-            <a href="/admin/payments" style="color:#38bdf8">
-                💳 Approve Payments
-            </a><br><br>
-
-            <a href="/admin/signals" style="color:#38bdf8">
-                📊 Create Signals
-            </a><br><br>
-
-            <a href="/admin/content" style="color:#38bdf8">
-                📁 Upload Content
-            </a><br><br>
-
-            <a href="/logout" style="color:red">
-                🚪 Logout
-            </a>
-
+            <a href="/admin/users" style="color:#38bdf8">👤 Manage Users</a><br><br>
+            <a href="/admin/payments" style="color:#38bdf8">💳 Approve Payments</a><br><br>
+            <a href="/admin/signals" style="color:#38bdf8">📊 Create Signals</a><br><br>
+            <a href="/admin/content" style="color:#38bdf8">📁 Upload Content</a><br><br>
+            <a href="/logout" style="color:red">🚪 Logout</a>
         </div>
 
     </div>
