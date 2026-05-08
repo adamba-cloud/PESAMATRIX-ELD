@@ -1,382 +1,164 @@
-from flask import (
-    Blueprint,
-    redirect,
-    current_app,
-    url_for,
-    request
-)
+def layout(content, title="Admin Panel"):
 
-from app.utils.ui import layout
-from app.utils.decorators import admin_required
+    return f"""
+<!DOCTYPE html>
+<html>
+<head>
 
-import sqlite3
-import os
-from werkzeug.utils import secure_filename
+    <title>{title}</title>
 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-admin_bp = Blueprint("admin", __name__)
+    <style>
 
-UPLOAD_FOLDER = "static/uploads"
+        body {{
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b1220;
+            color: white;
+        }}
 
+        .container {{
+            display: flex;
+            min-height: 100vh;
+        }}
 
-# =========================
-# ADMIN ROOT
-# =========================
-@admin_bp.route("/admin")
-@admin_required
-def admin_root():
-    return redirect(url_for("admin.admin_dashboard"))
+        /* SIDEBAR */
+        .sidebar {{
+            width: 250px;
+            background: #0f172a;
+            padding: 20px;
+        }}
 
+        .sidebar h2 {{
+            color: #38bdf8;
+            margin-bottom: 30px;
+        }}
 
-# =========================
-# ADMIN DASHBOARD
-# =========================
-@admin_bp.route("/admin/dashboard")
-@admin_required
-def admin_dashboard():
+        .sidebar a {{
+            display: block;
+            padding: 12px;
+            margin-bottom: 10px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+        }}
 
-    conn = sqlite3.connect(current_app.config["DATABASE"])
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
+        .sidebar a:hover {{
+            background: #38bdf8;
+        }}
 
-    users = cur.execute(
-        "SELECT COUNT(*) FROM users"
-    ).fetchone()[0]
+        /* MAIN */
+        .main {{
+            flex: 1;
+            padding: 25px;
+        }}
 
-    payments = cur.execute(
-        "SELECT COUNT(*) FROM payments"
-    ).fetchone()[0]
+        .card {{
+            background: rgba(255,255,255,0.06);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }}
 
-    signals = cur.execute(
-        "SELECT COUNT(*) FROM signals"
-    ).fetchone()[0]
+        .grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }}
 
-    content = cur.execute(
-        "SELECT COUNT(*) FROM content"
-    ).fetchone()[0]
+        .stat-card {{
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }}
 
-    conn.close()
+        .stat-card h2 {{
+            margin: 0;
+            font-size: 28px;
+        }}
 
-    return layout(f"""
+        .badge {{
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }}
 
-    <div class="card">
+        .running {{ background: #22c55e; }}
+        .upcoming {{ background: #f59e0b; }}
+        .expired {{ background: #ef4444; }}
 
-        <h1 style="color:#38bdf8">
-            🛠 ADMIN DASHBOARD
-        </h1>
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
 
-        <div class="grid">
+        th, td {{
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }}
 
-            <div class="stat-card">
-                <h2>{users}</h2>
-                <p>👤 Users</p>
-            </div>
+        button {{
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }}
 
-            <div class="stat-card">
-                <h2>{payments}</h2>
-                <p>💳 Payments</p>
-            </div>
+        .approve {{
+            background: #22c55e;
+            color: white;
+        }}
 
-            <div class="stat-card">
-                <h2>{signals}</h2>
-                <p>📊 Signals</p>
-            </div>
+        .reject {{
+            background: #ef4444;
+            color: white;
+        }}
 
-            <div class="stat-card">
-                <h2>{content}</h2>
-                <p>📁 Content</p>
-            </div>
+        @media(max-width: 768px) {{
+            .sidebar {{
+                width: 100px;
+            }}
 
-        </div>
+            .sidebar a {{
+                font-size: 12px;
+                padding: 8px;
+            }}
+        }}
 
-        <br>
+    </style>
 
-        <a href="/admin/users">
-            👥 Manage Users
-        </a><br><br>
+</head>
 
-        <a href="/admin/payments">
-            💳 Approve Payments
-        </a><br><br>
+<body>
 
-        <a href="/admin/signals">
-            📊 Trade Management
-        </a><br><br>
+<div class="container">
 
-        <a href="/admin/content">
-            📁 Upload Content
-        </a><br><br>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
 
-        <a href="/logout"
-           style="
-           background:#ef4444;
-           color:white;
-           ">
-            Logout
-        </a>
+        <h2>⚙ Admin</h2>
+
+        <a href="/admin/dashboard">📊 Dashboard</a>
+        <a href="/admin/users">👥 Users</a>
+        <a href="/admin/payments">💳 Payments</a>
+        <a href="/admin/signals">📈 Signals</a>
+        <a href="/admin/content">📁 Content</a>
+        <a href="/logout" style="color:red;">🚪 Logout</a>
 
     </div>
 
-    """)
+    <!-- MAIN -->
+    <div class="main">
 
-
-# =========================
-# TRADE MANAGEMENT
-# =========================
-@admin_bp.route("/admin/signals")
-@admin_required
-def manage_signals():
-
-    conn = sqlite3.connect(current_app.config["DATABASE"])
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-
-    signals = cur.execute(
-        "SELECT * FROM signals ORDER BY id DESC"
-    ).fetchall()
-
-    conn.close()
-
-    html = """
-
-    <div class="card">
-
-        <h2 style="color:#38bdf8">
-            📊 TRADE MANAGEMENT
-        </h2>
-
-    """
-
-    for s in signals:
-
-        status_class = s["status"].lower()
-
-        html += f"""
-
-        <div class="card">
-
-            <h3 style="color:#38bdf8">
-                📌 {s['asset']}
-            </h3>
-
-            💰 Entry:
-            <b>{s['entry']}</b><br><br>
-
-            🎯 Take Profit:
-            <b>{s['tp']}</b><br><br>
-
-            🛑 Stop Loss:
-            <b>{s['sl']}</b><br><br>
-
-            Current Status:
-
-            <span class="badge {status_class}">
-                {s['status']}
-            </span>
-
-            <br><br>
-
-            <a href="/admin/signal/{s['id']}/Upcoming">
-                Upcoming
-            </a>
-
-            |
-
-            <a href="/admin/signal/{s['id']}/Running">
-                Running
-            </a>
-
-            |
-
-            <a href="/admin/signal/{s['id']}/Expired">
-                Expired
-            </a>
-
-        </div>
-
-        """
-
-    html += "</div>"
-
-    return layout(html)
-
-
-# =========================
-# UPDATE SIGNAL STATUS
-# =========================
-@admin_bp.route("/admin/signal/<int:id>/<status>")
-@admin_required
-def update_signal_status(id, status):
-
-    allowed = [
-        "Upcoming",
-        "Running",
-        "Expired"
-    ]
-
-    if status not in allowed:
-        return redirect("/admin/signals")
-
-    conn = sqlite3.connect(
-        current_app.config["DATABASE"]
-    )
-
-    cur = conn.cursor()
-
-    cur.execute(
-        "UPDATE signals SET status=? WHERE id=?",
-        (status, id)
-    )
-
-    conn.commit()
-    conn.close()
-
-    return redirect("/admin/signals")
-
-
-# =========================
-# CONTENT MANAGEMENT
-# =========================
-@admin_bp.route(
-    "/admin/content",
-    methods=["GET", "POST"]
-)
-@admin_required
-def content_upload():
-
-    message = ""
-
-    if request.method == "POST":
-
-        title = request.form.get("title")
-        content_type = request.form.get("type")
-        link = request.form.get("link")
-
-        file = request.files.get("file")
-
-        uploaded_path = ""
-
-        if file and file.filename != "":
-
-            os.makedirs(
-                UPLOAD_FOLDER,
-                exist_ok=True
-            )
-
-            filename = secure_filename(
-                file.filename
-            )
-
-            uploaded_path = (
-                f"{UPLOAD_FOLDER}/{filename}"
-            )
-
-            file.save(uploaded_path)
-
-            message = """
-
-            <div class="success">
-                ✅ Upload Successful
-            </div>
-
-            """
-
-        elif link:
-
-            uploaded_path = link
-
-            message = """
-
-            <div class="success">
-                ✅ Link Saved Successfully
-            </div>
-
-            """
-
-        conn = sqlite3.connect(
-            current_app.config["DATABASE"]
-        )
-
-        cur = conn.cursor()
-
-        cur.execute(
-            """
-
-            INSERT INTO content
-            (title, type, link)
-
-            VALUES (?, ?, ?)
-
-            """,
-            (
-                title,
-                content_type,
-                uploaded_path
-            )
-        )
-
-        conn.commit()
-        conn.close()
-
-    return layout(f"""
-
-    <div class="card">
-
-        <h2 style="color:#38bdf8">
-            📁 CONTENT MANAGEMENT
-        </h2>
-
-        {message}
-
-        <form method="POST"
-              enctype="multipart/form-data">
-
-            <input
-                type="text"
-                name="title"
-                placeholder="Content Title"
-                required
-            >
-
-            <select name="type">
-
-                <option value="image">
-                    🖼 Image
-                </option>
-
-                <option value="video">
-                    🎥 Video
-                </option>
-
-                <option value="news">
-                    📰 News
-                </option>
-
-                <option value="link">
-                    🔗 External Link
-                </option>
-
-            </select>
-
-            <input
-                type="file"
-                name="file"
-            >
-
-            <input
-                type="text"
-                name="link"
-                placeholder="External Link (optional)"
-            >
-
-            <button type="submit">
-
-                ⬆ Upload Content
-
-            </button>
-
-        </form>
+        {content}
 
     </div>
 
-    """)
+</div>
+
+</body>
+</html>
+"""
