@@ -8,10 +8,21 @@ def login():
         phone = request.form.get("phone")
         password = request.form.get("password")
 
+        # =========================
+        # DEBUG PRINTS (ADDED)
+        # =========================
+        print("PHONE:", phone)
+        print("PASSWORD:", password)
+
         if not phone or not password:
             return "Missing fields"
 
         user = authenticate(phone, password)
+
+        # =========================
+        # DEBUG PRINT (ADDED)
+        # =========================
+        print("USER:", user)
 
         if user:
             session["user_id"] = user["id"]
