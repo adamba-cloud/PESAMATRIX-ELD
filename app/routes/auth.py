@@ -11,9 +11,6 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
 
-    # =========================
-    # POST REGISTER
-    # =========================
     if request.method == "POST":
 
         name = request.form.get("name", "").strip()
@@ -51,7 +48,6 @@ def register():
             """)
 
         return layout(f"""
-
         <div class="card" style="text-align:center">
 
             <h2 style="color:#22c55e">
@@ -65,7 +61,7 @@ def register():
             </h3>
 
             <p style="color:#cbd5e1">
-                Use this account number as your Paybill reference (322372)
+                Use this account number for Paybill (322372)
             </p>
 
             <a href="/login" style="color:#38bdf8">
@@ -73,14 +69,9 @@ def register():
             </a>
 
         </div>
-
         """)
 
-    # =========================
-    # REGISTER PAGE
-    # =========================
     return layout("""
-
     <div class="card">
 
         <h2 style="color:#38bdf8">Create Account</h2>
@@ -88,11 +79,8 @@ def register():
         <form method="POST">
 
             <input name="name" placeholder="Full Name" required><br><br>
-
             <input name="phone" placeholder="Phone Number" required><br><br>
-
             <input name="email" placeholder="Email Address" required><br><br>
-
             <input type="password" name="password" placeholder="Password" required><br><br>
 
             <button style="
@@ -110,7 +98,6 @@ def register():
         </form>
 
     </div>
-
     """)
 
 
@@ -120,9 +107,6 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
 
-    # =========================
-    # POST LOGIN
-    # =========================
     if request.method == "POST":
 
         phone = request.form.get("phone", "").strip()
@@ -151,8 +135,10 @@ def login():
             """)
 
         # =========================
-        # SESSION SETUP
+        # SESSION SETUP (UPDATED)
         # =========================
+        session.clear()
+
         session["user_id"] = user["id"]
         session["role"] = user["role"]
         session["account"] = user["account_number"]
@@ -165,11 +151,7 @@ def login():
 
         return redirect("/dashboard")
 
-    # =========================
-    # LOGIN PAGE
-    # =========================
     return layout("""
-
     <div class="card">
 
         <h2 style="color:#38bdf8">Login</h2>
@@ -195,7 +177,6 @@ def login():
         </form>
 
     </div>
-
     """)
 
 
@@ -206,5 +187,4 @@ def login():
 def logout():
 
     session.clear()
-
     return redirect("/login")
