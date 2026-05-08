@@ -1,4 +1,4 @@
-from flask import Blueprint, session, redirect, current_app
+from flask import Blueprint, session, redirect, current_app, url_for
 from app.utils.ui import layout
 from app.utils.security import admin_required
 import sqlite3
@@ -11,7 +11,7 @@ admin_bp = Blueprint("admin", __name__)
 # =========================
 @admin_bp.route("/admin")
 def admin_root():
-    return redirect("/admin/dashboard")
+    return redirect(url_for("admin.admin_dashboard"))
 
 
 # =========================
@@ -21,7 +21,7 @@ def admin_root():
 def admin_dashboard():
 
     if not admin_required():
-        return redirect("/login")
+        return redirect(url_for("auth.login"))
 
     conn = sqlite3.connect(current_app.config["DATABASE"])
     conn.row_factory = sqlite3.Row
