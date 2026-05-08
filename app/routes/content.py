@@ -2,19 +2,29 @@ from flask import Blueprint, request, session, redirect, current_app
 from app.utils.ui import layout
 import sqlite3
 import os
+from werkzeug.utils import secure_filename
 
 content_bp = Blueprint("content", __name__)
 
 
 # =========================
-# ADMIN CHECK
+# DB CONNECTION
+# =========================
+def get_db():
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+# =========================
+# ADMIN CHECK (SAFE)
 # =========================
 def is_admin():
-    return session.get("role") == "admin"
+    return session.get("role") == "admin" and session.get("user_id") is not None
 
 
 # =========================
-# UPLOAD CONTENT (ADMIN)
+# ADMIN CONTENT UPLOAD
 # =========================
 @content_bp.route("/admin/content", methods=["GET", "POST"])
 def upload_content():
@@ -22,13 +32,12 @@ def upload_content():
     if not is_admin():
         return redirect("/login")
 
+    message = ""
+
     if request.method == "POST":
 
-        conn = sqlite3.connect(current_app.config["DATABASE"])
-        cur = conn.cursor()
-
-        content_type = request.form["type"]
-        title = request.form["title"]
+        content_type = request.form.get("type")
+        title = request.form.get("title")
 
         file = request.files.get("file")
         link = request.form.get("link")
@@ -36,24 +45,59 @@ def upload_content():
         saved_link = ""
 
         # =========================
-        # FILE UPLOAD
+        # VALIDATION
+        # =========================
+        if not title or not content_type:
+            return layout("""
+            <div class="card" style="color:red">
+                ❌ Title and Type are required
+            </div>
+            """)
+
+        # =========================
+        # FILE UPLOAD (SAFE)
         # =========================
         if file and file.filename != "":
 
-            path = os.path.join(
-                current_app.config["UPLOAD_FOLDER"],
-                file.filename
+            upload_folder = current_app.config.get(
+                "UPLOAD_FOLDER",
+                "static/uploads"
             )
+
+            os.makedirs(upload_folder, exist_ok=True)
+
+            filename = secure_filename(file.filename)
+
+            # prevent overwrite collisions
+            unique_filename = f"{int(__import__('time').time())}_{filename}"
+
+            path = os.path.join(upload_folder, unique_filename)
 
             file.save(path)
 
-            saved_link = "/static/uploads/" + file.filename
+            saved_link = f"/static/uploads/{unique_filename}"
+
+            message = "✔ File uploaded successfully"
 
         # =========================
-        # LINK CONTENT
+        # EXTERNAL LINK
         # =========================
         elif link:
             saved_link = link
+            message = "✔ Link saved successfully"
+
+        else:
+            return layout("""
+            <div class="card" style="color:red">
+                ❌ Please upload a file or provide a link
+            </div>
+            """)
+
+        # =========================
+        # SAVE TO DATABASE
+        # =========================
+        conn = get_db()
+        cur = conn.cursor()
 
         cur.execute("""
             INSERT INTO content(type, title, link)
@@ -65,7 +109,12 @@ def upload_content():
 
         return redirect("/admin/content")
 
+
+    # =========================
+    # UPLOAD FORM UI
+    # =========================
     return layout("""
+
     <div class="card">
 
         <h2 style="color:#38bdf8">
@@ -75,14 +124,16 @@ def upload_content():
         <form method="POST" enctype="multipart/form-data">
 
             📌 Title:<br>
-            <input name="title"><br><br>
+            <input name="title" required><br><br>
 
             📂 Type:<br>
-            <select name="type">
+            <select name="type" required>
+
                 <option value="image">Image</option>
                 <option value="video">Video</option>
                 <option value="news">News</option>
                 <option value="link">Link</option>
+
             </select><br><br>
 
             📤 Upload File:<br>
@@ -91,7 +142,17 @@ def upload_content():
             🔗 OR External Link:<br>
             <input name="link"><br><br>
 
-            <button>Upload Content</button>
+            <button style="
+                background:#38bdf8;
+                color:black;
+                padding:10px;
+                border:none;
+                border-radius:6px;
+                width:100%;
+                font-weight:bold;
+            ">
+                ⬆ Upload Content
+            </button>
 
         </form>
 
@@ -102,4 +163,5 @@ def upload_content():
         </a>
 
     </div>
+
     """)
