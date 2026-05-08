@@ -1,4 +1,4 @@
-from flask import request, session, redirect, render_template
+from flask import request, session, redirect, render_template, current_app
 import sqlite3
 from datetime import datetime
 
@@ -9,7 +9,7 @@ def login():
         password = request.form.get("password")
 
         # =========================
-        # DEBUG START (ADDED)
+        # DEBUG START
         # =========================
         print("LOGIN START")
         print("PHONE:", phone)
@@ -21,16 +21,20 @@ def login():
         user = authenticate(phone, password)
 
         # =========================
-        # DEBUG RESULT (ADDED)
+        # DEBUG RESULT
         # =========================
         print("USER:", user)
         print("LOGIN END")
 
         if user:
+            # ✅ SESSION FIX (THIS WAS MISSING ROLE BEFORE)
             session["user_id"] = user["id"]
+            session["role"] = user["role"]   # 🔥 REQUIRED FOR ADMIN
 
-            # ✅ LOG LOGIN SUCCESS
-            conn = sqlite3.connect("database.db")
+            # =========================
+            # LOG SUCCESS
+            # =========================
+            conn = sqlite3.connect(current_app.config["DATABASE"])
             cur = conn.cursor()
             cur.execute(
                 "INSERT INTO logs (action, user, time) VALUES (?, ?, ?)",
@@ -41,8 +45,10 @@ def login():
 
             return redirect("/dashboard")
 
-        # ❌ LOG LOGIN FAILURE
-        conn = sqlite3.connect("database.db")
+        # =========================
+        # LOG FAILURE
+        # =========================
+        conn = sqlite3.connect(current_app.config["DATABASE"])
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO logs (action, user, time) VALUES (?, ?, ?)",
