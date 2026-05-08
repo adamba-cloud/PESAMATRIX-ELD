@@ -18,11 +18,19 @@ def get_db():
 
 
 # =========================
-# ROOT
+# ROOT (OLD - REDIRECT)
 # =========================
 @admin_bp.route("/")
 def admin_root():
     return redirect("/admin/dashboard")
+
+
+# =========================
+# NEW ROOT TEST (DEBUG)
+# =========================
+@admin_bp.route("/test")
+def admin_test():
+    return "ADMIN WORKS"
 
 
 # =========================
@@ -76,7 +84,7 @@ def dashboard():
 
 
 # =========================
-# LOGS ANALYTICS DASHBOARD (NEW)
+# LOGS ANALYTICS DASHBOARD
 # =========================
 @admin_bp.route("/logs")
 @admin_required
@@ -158,127 +166,4 @@ def payments():
             📱 {p['phone']}<br>
             💳 {p['mpesa_code']}<br>
             💰 {p['amount']}<br>
-            📦 {p['plan']}<br>
-            Status: <b>{p['status']}</b>
-        </div>
-        """
-
-    return layout(f"<h2>💳 Payments</h2><div class='grid'>{rows}</div>")
-
-
-# =========================
-# SIGNALS
-# =========================
-@admin_bp.route("/signals")
-@admin_required
-def signals():
-
-    conn = get_db()
-    data = conn.execute("SELECT * FROM signals ORDER BY id DESC").fetchall()
-    conn.close()
-
-    rows = ""
-
-    for s in data:
-        rows += f"""
-        <div class="card">
-            📊 <b>{s['asset']}</b><br><br>
-            Entry: {s['entry']}<br>
-            TP: {s['tp']}<br>
-            SL: {s['sl']}<br>
-            Status: {s['status']}
-        </div>
-        """
-
-    return layout(f"<h2>📊 Signals</h2><div class='grid'>{rows}</div>")
-
-
-# =========================
-# CONTENT
-# =========================
-@admin_bp.route("/content")
-@admin_required
-def content():
-
-    conn = get_db()
-    data = conn.execute("SELECT * FROM content ORDER BY id DESC").fetchall()
-    conn.close()
-
-    rows = ""
-
-    for c in data:
-        rows += f"""
-        <div class="card">
-            📁 {c['type']}<br>
-            <b>{c['title']}</b><br><br>
-            <a href="{c['link']}" target="_blank">Open</a>
-        </div>
-        """
-
-    return layout(f"<h2>📁 Content</h2><div class='grid'>{rows}</div>")
-
-
-# =========================
-# ACCESS CODE GENERATOR
-# =========================
-@admin_bp.route("/generate-code/<int:user_id>")
-@admin_required
-def generate_code(user_id):
-
-    conn = get_db()
-    code = secrets.token_hex(8)
-
-    conn.execute("""
-        INSERT INTO access_codes
-        (user_id, code, status, used, expires_at)
-        VALUES (?, ?, ?, ?, datetime('now', '+7 days'))
-    """, (user_id, code, "active", 0))
-
-    conn.commit()
-    conn.close()
-
-    return layout(f"""
-    <div class="card">
-        <h2>🔐 Code Generated</h2>
-        <p>User ID: {user_id}</p>
-
-        <div style="background:#111;color:#0f0;padding:10px;">
-            {code}
-        </div>
-
-        <p>⏳ Valid for 7 days</p>
-
-        <a href="/admin/users">Back</a>
-    </div>
-    """)
-
-
-# =========================
-# ACCESS CODES
-# =========================
-@admin_bp.route("/codes")
-@admin_required
-def codes():
-
-    conn = get_db()
-    data = conn.execute("""
-        SELECT id, user_id, code, status, used, expires_at, created_at
-        FROM access_codes
-        ORDER BY id DESC
-    """).fetchall()
-    conn.close()
-
-    rows = ""
-
-    for c in data:
-        rows += f"""
-        <div class="card">
-            🔐 <b>{c['code']}</b><br>
-            User: {c['user_id']}<br>
-            Status: {c['status']}<br>
-            Used: {c['used']}<br>
-            Expires: {c['expires_at']}<br>
-        </div>
-        """
-
-    return layout(f"<h2>🔐 Access Codes</h2><div class='grid'>{rows}</div>")
+            📦 {p['plan
