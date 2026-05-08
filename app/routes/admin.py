@@ -4,13 +4,14 @@ from flask import Blueprint, current_app
 from app.utils.ui import layout
 from app.middleware.auth import admin_required
 
-admin_bp = Blueprint("admin", __name__)
+
+admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
 # =========================
-# ADMIN DASHBOARD
+# DASHBOARD
 # =========================
-@admin_bp.route("/admin/dashboard")
+@admin_bp.route("/dashboard")
 @admin_required
 def admin_dashboard():
 
@@ -25,104 +26,189 @@ def admin_dashboard():
     conn.close()
 
     return layout(f"""
-
     <div style="padding:20px">
+        <h1>🛠 SaaS Admin Panel</h1>
 
-        <h1 style="color:#38bdf8">🛠 SaaS Admin Panel</h1>
-
-        <div class="grid">
-
-            <div class="stat-card">
-                <h2>{users}</h2>
-                <p>👤 Users</p>
-            </div>
-
-            <div class="stat-card">
-                <h2>{payments}</h2>
-                <p>💳 Payments</p>
-            </div>
-
-            <div class="stat-card">
-                <h2>{signals}</h2>
-                <p>📊 Signals</p>
-            </div>
-
-            <div class="stat-card">
-                <h2>{content}</h2>
-                <p>📁 Content</p>
-            </div>
-
+        <div>
+            <p>👤 Users: {users}</p>
+            <p>💳 Payments: {payments}</p>
+            <p>📊 Signals: {signals}</p>
+            <p>📁 Content: {content}</p>
         </div>
 
-        <br><br>
+        <hr>
 
-        <div class="card">
-            <h3>⚡ Quick Actions</h3>
+        <a href="/admin/users">Users</a><br>
+        <a href="/admin/payments">Payments</a><br>
+        <a href="/admin/signals">Signals</a><br>
+        <a href="/admin/content">Content</a><br>
+        <a href="/admin/codes">Access Codes</a><br>
 
-            <a href="/admin/users">👥 Manage Users</a><br><br>
-            <a href="/admin/payments">💳 Payments</a><br><br>
-            <a href="/admin/signals">📊 Trades</a><br><br>
-            <a href="/admin/content">📁 Media</a><br><br>
-            <a href="/admin/codes">🔐 Access Codes</a><br><br>
-
-            <a href="/logout" style="color:red">Logout</a>
-        </div>
-
+        <a href="/logout" style="color:red">Logout</a>
     </div>
+    """)
 
+
+# =========================
+# USERS
+# =========================
+@admin_bp.route("/users")
+@admin_required
+def users():
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    cur = conn.cursor()
+
+    data = cur.execute("SELECT id,name,phone,email,role,status FROM users").fetchall()
+    conn.close()
+
+    rows = ""
+
+    for u in data:
+        rows += f"<tr><td>{u[0]}</td><td>{u[1]}</td><td>{u[2]}</td><td>{u[3]}</td><td>{u[4]}</td><td>{u[5]}</td></tr>"
+
+    return layout(f"""
+    <h2>👥 Users</h2>
+    <table border="1" cellpadding="10">
+        <tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Role</th><th>Status</th></tr>
+        {rows}
+    </table>
+    """)
+
+
+# =========================
+# PAYMENTS
+# =========================
+@admin_bp.route("/payments")
+@admin_required
+def payments():
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    cur = conn.cursor()
+
+    data = cur.execute("SELECT * FROM payments ORDER BY id DESC").fetchall()
+    conn.close()
+
+    rows = ""
+
+    for p in data:
+        rows += f"<tr><td>{p[0]}</td><td>{p[1]}</td><td>{p[2]}</td><td>{p[3]}</td><td>{p[4]}</td><td>{p[5]}</td></tr>"
+
+    return layout(f"""
+    <h2>💳 Payments</h2>
+    <table border="1" cellpadding="10">
+        <tr><th>ID</th><th>Phone</th><th>Code</th><th>Amount</th><th>Plan</th><th>Status</th></tr>
+        {rows}
+    </table>
+    """)
+
+
+# =========================
+# SIGNALS
+# =========================
+@admin_bp.route("/signals")
+@admin_required
+def signals():
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    cur = conn.cursor()
+
+    data = cur.execute("SELECT * FROM signals ORDER BY id DESC").fetchall()
+    conn.close()
+
+    rows = ""
+
+    for s in data:
+        rows += f"<tr><td>{s[0]}</td><td>{s[1]}</td><td>{s[2]}</td><td>{s[3]}</td><td>{s[4]}</td><td>{s[5]}</td></tr>"
+
+    return layout(f"""
+    <h2>📊 Signals</h2>
+    <table border="1" cellpadding="10">
+        <tr><th>ID</th><th>Asset</th><th>Entry</th><th>TP</th><th>SL</th><th>Status</th></tr>
+        {rows}
+    </table>
+    """)
+
+
+# =========================
+# CONTENT
+# =========================
+@admin_bp.route("/content")
+@admin_required
+def content():
+
+    conn = sqlite3.connect(current_app.config["DATABASE"])
+    cur = conn.cursor()
+
+    data = cur.execute("SELECT * FROM content ORDER BY id DESC").fetchall()
+    conn.close()
+
+    rows = ""
+
+    for c in data:
+        rows += f"<tr><td>{c[0]}</td><td>{c[1]}</td><td>{c[2]}</td><td>{c[3]}</td><td>{c[4]}</td></tr>"
+
+    return layout(f"""
+    <h2>📁 Content</h2>
+    <table border="1" cellpadding="10">
+        <tr><th>ID</th><th>Type</th><th>Title</th><th>Link</th><th>Date</th></tr>
+        {rows}
+    </table>
     """)
 
 
 # =========================
 # CODE GENERATION SYSTEM
 # =========================
-@admin_bp.route("/admin/generate-code/<int:user_id>")
+@admin_bp.route("/generate-code/<int:user_id>")
 @admin_required
 def generate_code(user_id):
 
     conn = sqlite3.connect(current_app.config["DATABASE"])
     cur = conn.cursor()
 
-    # generate secure secret code
-    secret_code = secrets.token_hex(8)  # e.g. a1b2c3d4e5f6
+    # 🔐 generate secure code
+    code = secrets.token_hex(8)
 
-    # store in database
+    # expiry (7 days default)
     cur.execute("""
-        INSERT INTO access_codes (user_id, code, status)
-        VALUES (?, ?, ?)
-    """, (user_id, secret_code, "active"))
+        INSERT INTO access_codes
+        (user_id, code, status, used, expires_at)
+        VALUES (?, ?, ?, ?, datetime('now', '+7 days'))
+    """, (user_id, code, "active", 0))
 
     conn.commit()
     conn.close()
 
     return layout(f"""
-        <div style="padding:20px">
-            <h2>🔐 Access Code Generated</h2>
+    <div style="padding:20px">
+        <h2>🔐 ACCESS CODE GENERATED</h2>
 
-            <p>User ID: <b>{user_id}</b></p>
+        <p>User ID: {user_id}</p>
 
-            <div style="background:#111;color:#0f0;padding:10px;border-radius:5px">
-                {secret_code}
-            </div>
-
-            <br>
-            <a href="/admin/dashboard">⬅ Back to Dashboard</a>
+        <div style="background:#111;color:#0f0;padding:10px">
+            {code}
         </div>
+
+        <p>⏳ Expires in 7 days</p>
+
+        <a href="/admin/users">Back</a>
+    </div>
     """)
 
 
 # =========================
-# VIEW ALL CODES
+# VIEW CODES
 # =========================
-@admin_bp.route("/admin/codes")
+@admin_bp.route("/codes")
 @admin_required
-def view_codes():
+def codes():
 
     conn = sqlite3.connect(current_app.config["DATABASE"])
     cur = conn.cursor()
 
-    codes = cur.execute("""
-        SELECT id, user_id, code, status, created_at
+    data = cur.execute("""
+        SELECT id,user_id,code,status,used,expires_at,created_at
         FROM access_codes
         ORDER BY id DESC
     """).fetchall()
@@ -131,33 +217,27 @@ def view_codes():
 
     rows = ""
 
-    for c in codes:
+    for c in data:
         rows += f"""
         <tr>
             <td>{c[0]}</td>
             <td>{c[1]}</td>
-            <td style="color:#38bdf8">{c[2]}</td>
+            <td>{c[2]}</td>
             <td>{c[3]}</td>
             <td>{c[4]}</td>
+            <td>{c[5]}</td>
+            <td>{c[6]}</td>
         </tr>
         """
 
     return layout(f"""
-    <div style="padding:20px">
+    <h2>🔐 Access Codes</h2>
 
-        <h2>🔐 Generated Access Codes</h2>
-
-        <table border="1" cellpadding="10" style="width:100%;color:white">
-            <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Code</th>
-                <th>Status</th>
-                <th>Date</th>
-            </tr>
-
-            {rows}
-        </table>
-
-    </div>
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th><th>User</th><th>Code</th>
+            <th>Status</th><th>Used</th><th>Expires</th><th>Date</th>
+        </tr>
+        {rows}
+    </table>
     """)
