@@ -93,33 +93,43 @@ def init_db():
     )
     """)
 
-    # ================= ACCESS CODES (UPGRADED) =================
+    # ================= ACCESS CODES =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS access_codes(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         code TEXT UNIQUE,
         status TEXT DEFAULT 'active',
-
         used INTEGER DEFAULT 0,
         used_at TIMESTAMP,
-
         expires_at TIMESTAMP,
-
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
         FOREIGN KEY(user_id) REFERENCES users(id)
         ON DELETE CASCADE
     )
     """)
 
-    # ================= LOGS =================
+    # ================= SYSTEM LOGS (ACTION LOGS) =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS logs(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         action TEXT,
         user TEXT,
-        time TEXT DEFAULT CURRENT_TIMESTAMP
+        time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    # ================= REQUEST LOGS (ANALYTICS) =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS request_logs(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ip TEXT,
+        method TEXT,
+        path TEXT,
+        status INTEGER,
+        user_agent TEXT,
+        referer TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
