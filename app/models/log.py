@@ -9,8 +9,9 @@ def login():
         password = request.form.get("password")
 
         # =========================
-        # DEBUG PRINTS (ADDED)
+        # DEBUG START (ADDED)
         # =========================
+        print("LOGIN START")
         print("PHONE:", phone)
         print("PASSWORD:", password)
 
@@ -20,9 +21,10 @@ def login():
         user = authenticate(phone, password)
 
         # =========================
-        # DEBUG PRINT (ADDED)
+        # DEBUG RESULT (ADDED)
         # =========================
         print("USER:", user)
+        print("LOGIN END")
 
         if user:
             session["user_id"] = user["id"]
