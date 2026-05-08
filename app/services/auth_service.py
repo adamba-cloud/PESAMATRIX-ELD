@@ -15,11 +15,22 @@ def verify_password(password: str, hashed: str) -> bool:
 
 
 # =========================
+# SAFE DICT CONVERTER
+# =========================
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
+
+# =========================
 # CREATE USER
 # =========================
 def create_user(name, phone, email, password):
 
     conn = get_db()
+    conn.row_factory = dict_factory
     cur = conn.cursor()
 
     try:
@@ -74,7 +85,7 @@ def get_user(phone):
 
 
 # =========================
-# AUTHENTICATE USER
+# AUTHENTICATE USER (FIXED)
 # =========================
 def authenticate(phone, password):
 
@@ -87,14 +98,3 @@ def authenticate(phone, password):
         return user
 
     return None
-
-
-# =========================
-# SAFE DICT CONVERTER (IMPORTANT FIX)
-# =========================
-def dict_factory(cursor, row):
-    """Convert SQLite row to dictionary safely"""
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
