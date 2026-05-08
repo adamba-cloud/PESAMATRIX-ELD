@@ -1,122 +1,100 @@
-from flask import Blueprint, request, session, redirect, current_app
-from app.services.auth_service import create_user, authenticate
-from app.utils.ui import layout
-
-# =========================
-# BLUEPRINT (MUST BE FIRST)
-# =========================
-auth_bp = Blueprint("auth", __name__)
+import hashlib
+import random
+from app.database import get_db
 
 
 # =========================
-# REGISTER
+# PASSWORD SECURITY
 # =========================
-@auth_bp.route("/register", methods=["GET", "POST"])
-def register():
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
 
-    if request.method == "POST":
 
-        account = create_user(
-            request.form["name"],
-            request.form["phone"],
-            request.form["email"],
-            request.form["password"]
-        )
-
-        return layout(f"""
-        <div class="card" style="text-align:center">
-
-            <h2 style="color:#22c55e">Account Created ✔</h2>
-
-            <p>Your Account Number:</p>
-            <h3 style="color:#38bdf8">{account}</h3>
-
-            <a href="/login" style="color:#38bdf8">
-                Go to Login
-            </a>
-
-        </div>
-        """)
-
-    return layout("""
-    <div class="card">
-
-        <h2 style="color:#38bdf8">Create Account</h2>
-
-        <form method="POST">
-            <input name="name" placeholder="Name"><br><br>
-            <input name="phone" placeholder="Phone"><br><br>
-            <input name="email" placeholder="Email"><br><br>
-            <input type="password" name="password" placeholder="Password"><br><br>
-
-            <button style="
-                background:#38bdf8;
-                color:black;
-                padding:10px;
-                border:none;
-                border-radius:6px;
-                width:100%;
-            ">Register</button>
-        </form>
-
-    </div>
-    """)
+def verify_password(password: str, hashed: str) -> bool:
+    return hash_password(password) == hashed
 
 
 # =========================
-# LOGIN
+# CREATE USER
 # =========================
-@auth_bp.route("/login", methods=["GET", "POST"])
-def login():
+def create_user(name, phone, email, password):
 
-    if request.method == "POST":
+    conn = get_db()
+    cur = conn.cursor()
 
-        user = authenticate(
-            request.form["phone"],
-            request.form["password"]
-        )
+    try:
+        account_number = str(random.randint(100000, 999999))
 
-        if user:
-            session["user_id"] = user["id"]
-            session["role"] = user["role"]
-            session["account"] = user["account_number"]
+        cur.execute("""
+            INSERT INTO users(
+                name,
+                phone,
+                email,
+                password,
+                role,
+                status,
+                account_number
+            )
+            VALUES(?,?,?,?,?,?,?)
+        """, (
+            name,
+            phone,
+            email,
+            hash_password(password),
+            "user",
+            "inactive",
+            account_number
+        ))
 
-            return redirect("/dashboard")
+        conn.commit()
+        return account_number
 
-        return layout("""
-        <div class="card" style="color:red;text-align:center">
-            <h3>Invalid login</h3>
-            <a href="/login" style="color:#38bdf8">Try again</a>
-        </div>
-        """)
+    except Exception as e:
+        conn.rollback()
+        raise e
 
-    return layout("""
-    <div class="card">
-
-        <h2 style="color:#38bdf8">Login</h2>
-
-        <form method="POST">
-            <input name="phone" placeholder="Phone"><br><br>
-            <input type="password" name="password" placeholder="Password"><br><br>
-
-            <button style="
-                background:#38bdf8;
-                color:black;
-                padding:10px;
-                border:none;
-                border-radius:6px;
-                width:100%;
-            ">Login</button>
-        </form>
-
-    </div>
-    """)
+    finally:
+        conn.close()
 
 
 # =========================
-# LOGOUT
+# GET USER BY PHONE
 # =========================
-@auth_bp.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/login")
+def get_user(phone):
+
+    conn = get_db()
+    conn.row_factory = dict_factory
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM users WHERE phone=?", (phone,))
+    user = cur.fetchone()
+
+    conn.close()
+    return user
+
+
+# =========================
+# AUTHENTICATE USER
+# =========================
+def authenticate(phone, password):
+
+    user = get_user(phone)
+
+    if not user:
+        return None
+
+    if verify_password(password, user["password"]):
+        return user
+
+    return None
+
+
+# =========================
+# SAFE DICT CONVERTER (IMPORTANT FIX)
+# =========================
+def dict_factory(cursor, row):
+    """Convert SQLite row to dictionary safely"""
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
