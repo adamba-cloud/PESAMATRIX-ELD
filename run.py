@@ -9,9 +9,10 @@ from app.database import DATABASE, init_db
 # =========================
 app = Flask(__name__)
 
+# 🔐 SECRET KEY (FIXED)
 app.secret_key = os.environ.get(
     "SECRET_KEY",
-    "change_this_in_production"
+    "super_secure_key_change_this"
 )
 
 app.config["DATABASE"] = DATABASE
@@ -24,7 +25,6 @@ with app.app_context():
     try:
         print("📦 Using DB:", DATABASE)
 
-        # ✔ INIT DATABASE HERE
         init_db()
 
         print("✅ Database initialized successfully")
@@ -52,7 +52,7 @@ app.register_blueprint(admin_bp)
 
 
 # =========================
-# HEALTH CHECK (SAFE)
+# HEALTH CHECK
 # =========================
 @app.route("/health")
 def health():
