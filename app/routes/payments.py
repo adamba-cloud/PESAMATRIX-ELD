@@ -6,14 +6,7 @@ payments_bp = Blueprint("payments", __name__)
 
 
 # =========================
-# LOGIN CHECK
-# =========================
-def login_required():
-    return session.get("user_id") is not None
-
-
-# =========================
-# DATABASE CONNECTION
+# DB CONNECTION
 # =========================
 def get_db():
     conn = sqlite3.connect(current_app.config["DATABASE"])
@@ -22,10 +15,17 @@ def get_db():
 
 
 # =========================
-# USER: MAKE PAYMENT PAGE
+# LOGIN CHECK
 # =========================
-@payments_bp.route("/subscribe", methods=["GET", "POST"])
-def subscribe():
+def login_required():
+    return session.get("user_id") is not None
+
+
+# =========================
+# USER PAYMENT PAGE
+# =========================
+@payments_bp.route("/pay", methods=["GET", "POST"])
+def pay():
 
     if not login_required():
         return redirect("/login")
@@ -36,11 +36,11 @@ def subscribe():
     if request.method == "POST":
 
         cur.execute("""
-        INSERT INTO payments(phone, mpesa_code, amount, plan, status)
-        VALUES(?,?,?,?,?)
+            INSERT INTO payments(phone, mpesa_code, amount, plan, status)
+            VALUES(?,?,?,?,?)
         """, (
             request.form["phone"],
-            request.form["mpesa_code"],
+            request.form["mpesa"],
             request.form["amount"],
             request.form["plan"],
             "pending"
@@ -50,13 +50,10 @@ def subscribe():
         conn.close()
 
         return layout("""
-        <div class="card">
+        <div class="card" style="text-align:center">
 
-            <h2 style="color:green">
-                ✅ Payment Submitted
-            </h2>
-
-            <p>Waiting for admin approval.</p>
+            <h2 style="color:#22c55e">Payment Submitted ✔</h2>
+            <p>Waiting for admin approval</p>
 
             <a href="/dashboard" style="color:#38bdf8">
                 Go to Dashboard
@@ -70,9 +67,7 @@ def subscribe():
     return layout("""
     <div class="card">
 
-        <h1 style="color:#38bdf8">
-            💳 SUBSCRIBE
-        </h1>
+        <h2 style="color:#38bdf8">💳 Subscribe</h2>
 
         <form method="POST">
 
@@ -80,7 +75,7 @@ def subscribe():
             <input name="phone" required><br><br>
 
             M-Pesa Code:<br>
-            <input name="mpesa_code" required><br><br>
+            <input name="mpesa" required><br><br>
 
             Amount:<br>
             <input name="amount" required><br><br>
@@ -92,24 +87,29 @@ def subscribe():
                 <option value="monthly">Monthly</option>
             </select><br><br>
 
-            <button>Submit Payment</button>
+            <button style="
+                background:#38bdf8;
+                color:black;
+                padding:10px;
+                border:none;
+                border-radius:6px;
+                width:100%;
+            ">Submit Payment</button>
 
         </form>
 
         <br>
-
         <p>Paybill: <b>322372</b></p>
-        <p>Account: <b>Your Account Number</b></p>
 
     </div>
     """)
 
 
 # =========================
-# USER: PAYMENT STATUS
+# USER PAYMENT STATUS
 # =========================
-@payments_bp.route("/payments/status")
-def payment_status():
+@payments_bp.route("/payments")
+def my_payments():
 
     if not login_required():
         return redirect("/login")
@@ -132,13 +132,10 @@ def payment_status():
     html = """
     <div class="card">
 
-        <h1 style="color:#38bdf8">
-            💳 PAYMENT STATUS
-        </h1>
+        <h2 style="color:#38bdf8">💳 My Payments</h2>
     """
 
     for p in payments:
-
         html += f"""
         <div class="card">
 
@@ -152,12 +149,11 @@ def payment_status():
         """
 
     html += "</div>"
-
     return layout(html)
 
 
 # =========================
-# ADMIN: VIEW PAYMENTS
+# ADMIN VIEW PAYMENTS
 # =========================
 @payments_bp.route("/admin/payments")
 def admin_payments():
@@ -177,13 +173,10 @@ def admin_payments():
     html = """
     <div class="card">
 
-        <h1 style="color:#38bdf8">
-            💳 PAYMENT APPROVAL
-        </h1>
+        <h2 style="color:#38bdf8">💳 Admin Payments</h2>
     """
 
     for p in payments:
-
         html += f"""
         <div class="card">
 
@@ -195,13 +188,15 @@ def admin_payments():
 
             <form method="POST" action="/admin/approve-payment">
 
-                <input
-                    type="hidden"
-                    name="phone"
-                    value="{p['phone']}"
-                >
+                <input type="hidden" name="phone" value="{p['phone']}">
 
-                <button>
+                <button style="
+                    background:#22c55e;
+                    color:black;
+                    padding:8px;
+                    border:none;
+                    border-radius:6px;
+                ">
                     Approve
                 </button>
 
@@ -211,12 +206,11 @@ def admin_payments():
         """
 
     html += "</div>"
-
     return layout(html)
 
 
 # =========================
-# ADMIN: APPROVE PAYMENT
+# ADMIN APPROVE PAYMENT
 # =========================
 @payments_bp.route("/admin/approve-payment", methods=["POST"])
 def approve_payment():
@@ -229,10 +223,18 @@ def approve_payment():
     conn = get_db()
     cur = conn.cursor()
 
-    # approve payment
     cur.execute(
         "UPDATE payments SET status='approved' WHERE phone=?",
         (phone,)
     )
 
     # activate user
+    cur.execute(
+        "UPDATE users SET status='active' WHERE phone=?",
+        (phone,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/admin/payments")
