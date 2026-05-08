@@ -1,33 +1,57 @@
-import sqlite3
-from flask import request, current_app
+from functools import wraps
+from flask import session, redirect, url_for, request
 
 
 # =========================
-# REQUEST LOGGER
+# LOGIN REQUIRED
 # =========================
-def log_request(response):
+def login_required(func):
 
-    try:
-        conn = sqlite3.connect(current_app.config["DATABASE"])
-        cursor = conn.cursor()
+    @wraps(func)
+    def wrapper(*args, **kwargs):
 
-        cursor.execute("""
-            INSERT INTO request_logs
-            (ip, method, path, status, user_agent, referer)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            request.remote_addr,
-            request.method,
-            request.path,
-            response.status_code,
-            request.headers.get("User-Agent"),
-            request.referrer
-        ))
+        # Check if user is logged in
+        if "user_id" not in session:
+            return redirect(url_for("auth.login", next=request.path))
 
-        conn.commit()
-        conn.close()
+        return func(*args, **kwargs)
 
-    except Exception as e:
-        print("Logging error:", e)
+    return wrapper
 
-    return response
+
+# =========================
+# ADMIN REQUIRED
+# =========================
+def admin_required(func):
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        # Must be logged in first
+        if "user_id" not in session:
+            return redirect(url_for("auth.login", next=request.path))
+
+        # Must be admin role
+        if session.get("role") != "admin":
+            return redirect(url_for("user.dashboard"))
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+# =========================
+# OPTIONAL: GUEST ONLY (LOGIN PAGE PROTECTION)
+# =========================
+def guest_only(func):
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        if "user_id" in session:
+            # If already logged in, redirect to dashboard
+            return redirect(url_for("user.dashboard"))
+
+        return func(*args, **kwargs)
+
+    return wrapper
