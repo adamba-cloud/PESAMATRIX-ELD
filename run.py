@@ -53,7 +53,7 @@ def make_admin():
     cur.execute("""
         UPDATE users
         SET role='admin'
-        WHERE phone='0712345678'
+        WHERE phone='254717434943'
     """)
 
     conn.commit()
