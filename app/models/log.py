@@ -1,17 +1,43 @@
+from flask import request, session, redirect, render_template
 import sqlite3
+from datetime import datetime
 
-def create_log_table(db):
-    conn = sqlite3.connect(db)
-    cur = conn.cursor()
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        phone = request.form.get("phone")
+        password = request.form.get("password")
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS logs(
-        id INTEGER PRIMARY KEY,
-        action TEXT,
-        user TEXT,
-        time TEXT
-    )
-    """)
+        if not phone or not password:
+            return "Missing fields"
 
-    conn.commit()
-    conn.close()
+        user = authenticate(phone, password)
+
+        if user:
+            session["user_id"] = user["id"]
+
+            # ✅ LOG LOGIN SUCCESS
+            conn = sqlite3.connect("database.db")
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO logs (action, user, time) VALUES (?, ?, ?)",
+                ("login_success", phone, datetime.now().isoformat())
+            )
+            conn.commit()
+            conn.close()
+
+            return redirect("/dashboard")
+
+        # ❌ LOG LOGIN FAILURE
+        conn = sqlite3.connect("database.db")
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO logs (action, user, time) VALUES (?, ?, ?)",
+            ("login_failed", phone, datetime.now().isoformat())
+        )
+        conn.commit()
+        conn.close()
+
+        return "Invalid credentials"
+
+    return render_template("login.html")
