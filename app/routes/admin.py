@@ -1,10 +1,9 @@
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, session, redirect
 import sqlite3
 import secrets
+from functools import wraps
 
-from app.middleware.auth import admin_required
 from app.utils.ui import layout
-
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -19,7 +18,30 @@ def get_db():
 
 
 # =========================
-# DASHBOARD
+# ADMIN AUTH GUARD
+# =========================
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+
+        if not session.get("admin_logged_in"):
+            return redirect("/admin/login")
+
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
+# =========================
+# ROOT
+# =========================
+@admin_bp.route("/")
+def admin_root():
+    return redirect("/admin/dashboard")
+
+
+# =========================
+# MODERN DASHBOARD (SAAS STYLE)
 # =========================
 @admin_bp.route("/dashboard")
 @admin_required
@@ -36,31 +58,60 @@ def dashboard():
     conn.close()
 
     return layout(f"""
+
+    <div style="padding:20px">
+
+        <h1 style="color:#38bdf8">🛠 Admin Dashboard</h1>
+
+        <!-- STATS CARDS -->
+        <div class="grid">
+
+            <div class="card">
+                <h2>👤 {users}</h2>
+                <p>Users</p>
+            </div>
+
+            <div class="card">
+                <h2>💳 {payments}</h2>
+                <p>Payments</p>
+            </div>
+
+            <div class="card">
+                <h2>📊 {signals}</h2>
+                <p>Signals</p>
+            </div>
+
+            <div class="card">
+                <h2>📁 {content}</h2>
+                <p>Content</p>
+            </div>
+
+        </div>
+
+        <br>
+
+        <!-- QUICK ACTIONS -->
         <div class="card">
 
-            <h1>🛠 ADMIN DASHBOARD</h1>
+            <h3>⚡ Quick Actions</h3>
 
-            <p>👤 Users: {users}</p>
-            <p>💳 Payments: {payments}</p>
-            <p>📊 Signals: {signals}</p>
-            <p>📁 Content: {content}</p>
-
-            <hr>
-
-            <a href="/admin/users">👥 Users</a><br>
-            <a href="/admin/payments">💳 Payments</a><br>
-            <a href="/admin/signals">📊 Signals</a><br>
-            <a href="/admin/content">📁 Content</a><br>
+            <a href="/admin/users">👥 Manage Users</a><br><br>
+            <a href="/admin/payments">💳 View Payments</a><br><br>
+            <a href="/admin/signals">📊 Trade Signals</a><br><br>
+            <a href="/admin/content">📁 Content Library</a><br><br>
             <a href="/admin/codes">🔐 Access Codes</a><br><br>
 
             <a href="/logout" style="color:red">Logout</a>
 
         </div>
+
+    </div>
+
     """)
 
 
 # =========================
-# USERS
+# USERS (MODERN LIST)
 # =========================
 @admin_bp.route("/users")
 @admin_required
@@ -78,34 +129,34 @@ def users():
     rows = ""
 
     for u in data:
+        status_color = "#22c55e" if u["status"] == "active" else "#ef4444"
+
         rows += f"""
-        <tr>
-            <td>{u['id']}</td>
-            <td>{u['name']}</td>
-            <td>{u['phone']}</td>
-            <td>{u['email']}</td>
-            <td>{u['role']}</td>
-            <td>{u['status']}</td>
-        </tr>
+        <div class="card">
+
+            <b>👤 {u['name']}</b><br>
+            📱 {u['phone']}<br>
+            📧 {u['email']}<br>
+            🎭 Role: {u['role']}<br>
+
+            Status:
+            <b style="color:{status_color}">
+                {u['status']}
+            </b>
+
+        </div>
         """
 
     return layout(f"""
-        <div class="card">
-            <h2>👥 USERS</h2>
-
-            <table border="1" cellpadding="8">
-                <tr>
-                    <th>ID</th><th>Name</th><th>Phone</th>
-                    <th>Email</th><th>Role</th><th>Status</th>
-                </tr>
-                {rows}
-            </table>
+        <h2>👥 Users</h2>
+        <div class="grid">
+            {rows}
         </div>
     """)
 
 
 # =========================
-# PAYMENTS
+# PAYMENTS (MODERN CARDS)
 # =========================
 @admin_bp.route("/payments")
 @admin_required
@@ -123,28 +174,25 @@ def payments():
     rows = ""
 
     for p in data:
+
         rows += f"""
-        <tr>
-            <td>{p['id']}</td>
-            <td>{p['phone']}</td>
-            <td>{p['mpesa_code']}</td>
-            <td>{p['amount']}</td>
-            <td>{p['plan']}</td>
-            <td>{p['status']}</td>
-        </tr>
+        <div class="card">
+
+            📱 Phone: {p['phone']}<br>
+            💳 Code: {p['mpesa_code']}<br>
+            💰 Amount: {p['amount']}<br>
+            📦 Plan: {p['plan']}<br>
+
+            Status:
+            <b>{p['status']}</b>
+
+        </div>
         """
 
     return layout(f"""
-        <div class="card">
-            <h2>💳 PAYMENTS</h2>
-
-            <table border="1" cellpadding="8">
-                <tr>
-                    <th>ID</th><th>Phone</th><th>Code</th>
-                    <th>Amount</th><th>Plan</th><th>Status</th>
-                </tr>
-                {rows}
-            </table>
+        <h2>💳 Payments</h2>
+        <div class="grid">
+            {rows}
         </div>
     """)
 
@@ -168,28 +216,25 @@ def signals():
     rows = ""
 
     for s in data:
+
         rows += f"""
-        <tr>
-            <td>{s['id']}</td>
-            <td>{s['asset']}</td>
-            <td>{s['entry']}</td>
-            <td>{s['tp']}</td>
-            <td>{s['sl']}</td>
-            <td>{s['status']}</td>
-        </tr>
+        <div class="card">
+
+            📊 <b>{s['asset']}</b><br><br>
+
+            Entry: {s['entry']}<br>
+            TP: {s['tp']}<br>
+            SL: {s['sl']}<br>
+
+            Status: {s['status']}
+
+        </div>
         """
 
     return layout(f"""
-        <div class="card">
-            <h2>📊 SIGNALS</h2>
-
-            <table border="1" cellpadding="8">
-                <tr>
-                    <th>ID</th><th>Asset</th><th>Entry</th>
-                    <th>TP</th><th>SL</th><th>Status</th>
-                </tr>
-                {rows}
-            </table>
+        <h2>📊 Signals</h2>
+        <div class="grid">
+            {rows}
         </div>
     """)
 
@@ -213,33 +258,28 @@ def content():
     rows = ""
 
     for c in data:
+
         rows += f"""
-        <tr>
-            <td>{c['id']}</td>
-            <td>{c['type']}</td>
-            <td>{c['title']}</td>
-            <td>{c['link']}</td>
-            <td>{c['created_at']}</td>
-        </tr>
+        <div class="card">
+
+            📁 {c['type']}<br>
+            <b>{c['title']}</b><br><br>
+
+            <a href="{c['link']}" target="_blank">Open</a>
+
+        </div>
         """
 
     return layout(f"""
-        <div class="card">
-            <h2>📁 CONTENT</h2>
-
-            <table border="1" cellpadding="8">
-                <tr>
-                    <th>ID</th><th>Type</th><th>Title</th>
-                    <th>Link</th><th>Date</th>
-                </tr>
-                {rows}
-            </table>
+        <h2>📁 Content</h2>
+        <div class="grid">
+            {rows}
         </div>
     """)
 
 
 # =========================
-# ACCESS CODE GENERATION (FULL FIXED SYSTEM)
+# ACCESS CODE GENERATION
 # =========================
 @admin_bp.route("/generate-code/<int:user_id>")
 @admin_required
@@ -262,7 +302,7 @@ def generate_code(user_id):
     return layout(f"""
         <div class="card">
 
-            <h2>🔐 CODE GENERATED</h2>
+            <h2>🔐 Code Generated</h2>
 
             <p>User ID: {user_id}</p>
 
@@ -279,7 +319,7 @@ def generate_code(user_id):
 
 
 # =========================
-# ACCESS CODES LIST
+# CODES LIST
 # =========================
 @admin_bp.route("/codes")
 @admin_required
@@ -299,28 +339,22 @@ def codes():
     rows = ""
 
     for c in data:
+
         rows += f"""
-        <tr>
-            <td>{c['id']}</td>
-            <td>{c['user_id']}</td>
-            <td>{c['code']}</td>
-            <td>{c['status']}</td>
-            <td>{c['used']}</td>
-            <td>{c['expires_at']}</td>
-            <td>{c['created_at']}</td>
-        </tr>
+        <div class="card">
+
+            🔐 Code: <b>{c['code']}</b><br>
+            User: {c['user_id']}<br>
+            Status: {c['status']}<br>
+            Used: {c['used']}<br>
+            Expires: {c['expires_at']}<br>
+
+        </div>
         """
 
     return layout(f"""
-        <div class="card">
-            <h2>🔐 ACCESS CODES</h2>
-
-            <table border="1" cellpadding="8">
-                <tr>
-                    <th>ID</th><th>User</th><th>Code</th>
-                    <th>Status</th><th>Used</th><th>Expiry</th><th>Date</th>
-                </tr>
-                {rows}
-            </table>
+        <h2>🔐 Access Codes</h2>
+        <div class="grid">
+            {rows}
         </div>
     """)
