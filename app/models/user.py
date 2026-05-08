@@ -9,11 +9,11 @@ user_bp = Blueprint("user", __name__)
 # LOGIN CHECK
 # =========================
 def login_required():
-    return session.get("user_id") is not None
+    return "user_id" in session
 
 
 # =========================
-# USER DASHBOARD
+# DASHBOARD
 # =========================
 @user_bp.route("/dashboard")
 def dashboard():
@@ -32,17 +32,18 @@ def dashboard():
 
     conn.close()
 
+    if not user:
+        session.clear()
+        return redirect(url_for("auth.login"))
+
     status_color = "green" if user["status"] == "active" else "red"
 
     return layout(f"""
     <div class="card">
 
-        <h1 style="color:#38bdf8">
-            📱 USER DASHBOARD
-        </h1>
+        <h1 style="color:#38bdf8">📱 USER DASHBOARD</h1>
 
         <div class="card">
-
             👤 Name: {user['name']}<br>
             📱 Phone: {user['phone']}<br>
             🧾 Account: {user['account_number']}<br>
@@ -51,7 +52,6 @@ def dashboard():
             <span style="color:{status_color}">
                 {user['status']}
             </span>
-
         </div>
 
         <br>
@@ -61,16 +61,14 @@ def dashboard():
         <a href="/news" style="color:#38bdf8">📰 News</a><br><br>
         <a href="/payments/status" style="color:#38bdf8">💳 Payment Status</a><br><br>
 
-        <a href="{url_for('auth.logout')}" style="color:red">
-            Logout
-        </a>
+        <a href="{url_for('auth.logout')}" style="color:red">Logout</a>
 
     </div>
     """)
 
 
 # =========================
-# SIGNALS (LOCKED SYSTEM)
+# SIGNALS
 # =========================
 @user_bp.route("/signals")
 def signals():
@@ -87,14 +85,17 @@ def signals():
         (session["user_id"],)
     ).fetchone()
 
+    if not user:
+        conn.close()
+        session.clear()
+        return redirect(url_for("auth.login"))
+
     if user["status"] != "active":
         conn.close()
-
         return layout("""
         <div class="card">
 
             <h2 style="color:#ff4d4d">🔒 SIGNALS LOCKED</h2>
-
             <p>You must subscribe to access trading signals.</p>
 
             <a href="/payments/status" style="color:#38bdf8">
@@ -112,20 +113,17 @@ def signals():
 
     html = """
     <div class="card">
-
         <h2 style="color:#38bdf8">📊 LIVE SIGNALS</h2>
     """
 
     for s in signals:
         html += f"""
         <div class="card">
-
             📌 Asset: {s['asset']}<br>
             💰 Entry: {s['entry']}<br>
             🎯 TP: {s['tp']}<br>
             🛑 SL: {s['sl']}<br>
             📡 Status: {s['status']}
-
         </div>
         """
 
@@ -151,6 +149,11 @@ def payment_status():
         (session["user_id"],)
     ).fetchone()
 
+    if not user:
+        conn.close()
+        session.clear()
+        return redirect(url_for("auth.login"))
+
     payments = cur.execute(
         "SELECT * FROM payments WHERE phone=?",
         (user["phone"],)
@@ -160,20 +163,17 @@ def payment_status():
 
     html = """
     <div class="card">
-
         <h2 style="color:#38bdf8">💳 PAYMENT STATUS</h2>
     """
 
     for p in payments:
         html += f"""
         <div class="card">
-
             📱 Phone: {p['phone']}<br>
             💰 Amount: {p['amount']}<br>
             🧾 M-Pesa: {p['mpesa_code']}<br>
             📦 Plan: {p['plan']}<br>
             🔐 Status: {p['status']}
-
         </div>
         """
 
@@ -202,21 +202,18 @@ def content():
 
     html = """
     <div class="card">
-
         <h2 style="color:#38bdf8">📁 CONTENT GALLERY</h2>
     """
 
     for i in items:
         html += f"""
         <div class="card">
-
             🏷 Type: {i['type']}<br>
             📌 Title: {i['title']}<br><br>
 
             <a href="{i['link']}" target="_blank" style="color:#38bdf8">
                 Open Content
             </a>
-
         </div>
         """
 
@@ -245,17 +242,14 @@ def news():
 
     html = """
     <div class="card">
-
         <h2 style="color:#38bdf8">📰 LATEST NEWS</h2>
     """
 
     for p in posts:
         html += f"""
         <div class="card">
-
             📰 Title: {p['title']}<br>
             📄 Content: {p['link']}
-
         </div>
         """
 
