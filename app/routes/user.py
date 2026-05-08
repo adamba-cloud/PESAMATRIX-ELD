@@ -32,7 +32,6 @@ def dashboard():
 
     conn.close()
 
-    # ✅ SAFETY CHECK
     if not user:
         session.clear()
         return redirect("/login")
@@ -66,7 +65,7 @@ def dashboard():
 
 
 # =========================
-# SIGNALS (LOCKED SYSTEM)
+# SIGNALS
 # =========================
 @user_bp.route("/signals")
 def signals_page():
@@ -84,6 +83,7 @@ def signals_page():
     ).fetchone()
 
     if not user:
+        conn.close()
         session.clear()
         return redirect("/login")
 
@@ -141,6 +141,11 @@ def payment_status():
         (session["user_id"],)
     ).fetchone()
 
+    if not user:
+        conn.close()
+        session.clear()
+        return redirect("/login")
+
     payments = cur.execute(
         "SELECT * FROM payments WHERE phone=?",
         (user["phone"],)
@@ -148,7 +153,10 @@ def payment_status():
 
     conn.close()
 
-    html = "<div class='card'><h2>💳 PAYMENT STATUS</h2>"
+    html = """
+    <div class="card">
+        <h2 style="color:#38bdf8">💳 PAYMENT STATUS</h2>
+    """
 
     for p in payments:
         html += f"""
@@ -184,7 +192,10 @@ def content():
 
     conn.close()
 
-    html = "<div class='card'><h2>📁 CONTENT</h2>"
+    html = """
+    <div class="card">
+        <h2 style="color:#38bdf8">📁 CONTENT</h2>
+    """
 
     for i in items:
         html += f"""
@@ -218,7 +229,10 @@ def news():
 
     conn.close()
 
-    html = "<div class='card'><h2>📰 NEWS</h2>"
+    html = """
+    <div class="card">
+        <h2 style="color:#38bdf8">📰 NEWS</h2>
+    """
 
     for p in posts:
         html += f"""
