@@ -1,5 +1,6 @@
-from flask import Blueprint, request, session, redirect, current_app
+from flask import Blueprint, session, redirect, current_app
 from app.utils.ui import layout
+from app.utils.security import admin_required
 import sqlite3
 
 # =========================
@@ -9,19 +10,12 @@ admin_bp = Blueprint("admin", __name__)
 
 
 # =========================
-# ADMIN CHECK
-# =========================
-def is_admin():
-    return session.get("role") == "admin"
-
-
-# =========================
 # ADMIN DASHBOARD
 # =========================
-@admin_bp.route("/admin")
-def admin_home():
+@admin_bp.route("/admin/dashboard")
+def admin_dashboard():
 
-    if not is_admin():
+    if not admin_required():
         return redirect("/login")
 
     conn = sqlite3.connect(current_app.config["DATABASE"])
@@ -46,7 +40,7 @@ def admin_home():
     <div class="card">
 
         <h1 style="color:#38bdf8">
-            🧑‍💼 ADMIN DASHBOARD
+            🛠 Admin Dashboard
         </h1>
 
         <div class="card">
