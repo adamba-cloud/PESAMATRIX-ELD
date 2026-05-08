@@ -1,9 +1,9 @@
-from flask import Blueprint, request, session, redirect, current_app
+from flask import Blueprint, request, session, redirect
 from app.services.auth_service import create_user, authenticate
 from app.utils.ui import layout
 
 # =========================
-# BLUEPRINT (MUST BE FIRST)
+# BLUEPRINT
 # =========================
 auth_bp = Blueprint("auth", __name__)
 
@@ -71,10 +71,10 @@ def login():
 
     if request.method == "POST":
 
-        user = authenticate(
-            request.form["phone"],
-            request.form["password"]
-        )
+        phone = request.form.get("phone")
+        password = request.form.get("password")
+
+        user = authenticate(phone, password)
 
         if user:
             session["user_id"] = user["id"]
