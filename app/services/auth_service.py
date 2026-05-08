@@ -48,7 +48,7 @@ def create_user(name, phone, email, password):
 def get_user(phone):
 
     conn = get_db()
-    conn.row_factory = None
+    conn.row_factory = None   # ❌ REMOVE THIS LINE
     cur = conn.cursor()
 
     cur.execute("SELECT * FROM users WHERE phone=?", (phone,))
@@ -68,8 +68,8 @@ def authenticate(phone, password):
     if not user:
         return None
 
-    if verify_password(password, user["password"]):
+    # FIX: convert tuple → dict-safe handling depends on DB config
+    if verify_password(password, user[4]):  # password column index
         return user
 
     return None
-    
