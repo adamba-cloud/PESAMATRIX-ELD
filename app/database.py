@@ -93,17 +93,21 @@ def init_db():
     )
     """)
 
-    # ================= ACCESS CODES =================
+    # ================= ACCESS CODES (UPGRADED) =================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS access_codes(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         code TEXT UNIQUE,
         status TEXT DEFAULT 'active',
+
         used INTEGER DEFAULT 0,
         used_at TIMESTAMP,
+
         expires_at TIMESTAMP,
+
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
         FOREIGN KEY(user_id) REFERENCES users(id)
         ON DELETE CASCADE
     )
