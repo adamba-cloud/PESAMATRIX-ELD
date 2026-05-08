@@ -2,23 +2,23 @@ import sqlite3
 import os
 
 # =========================
-# DATABASE PATH (RENDER SAFE)
+# DATABASE PATH
 # =========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE = os.path.join(BASE_DIR, "database.db")
 
 
 # =========================
-# DATABASE CONNECTION
+# DB CONNECTION
 # =========================
 def get_db():
     conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row   # ✔ ensures dict-like access
+    conn.row_factory = sqlite3.Row
     return conn
 
 
 # =========================
-# INITIALIZE DATABASE
+# INIT DATABASE
 # =========================
 def init_db():
 
@@ -74,5 +74,17 @@ def init_db():
     )
     """)
 
+    # ================= LOGS =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS logs(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        action TEXT,
+        user TEXT,
+        time TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
+
+    print("✅ Database initialized successfully")
