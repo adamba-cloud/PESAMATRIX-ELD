@@ -1,3 +1,20 @@
+from flask import Blueprint, request, session, redirect, current_app
+from app.utils.ui import layout
+import sqlite3
+
+# =========================
+# BLUEPRINT
+# =========================
+admin_bp = Blueprint("admin", __name__)
+
+
+# =========================
+# ADMIN CHECK
+# =========================
+def is_admin():
+    return session.get("role") == "admin"
+
+
 # =========================
 # ADMIN DASHBOARD
 # =========================
@@ -50,19 +67,27 @@ def admin_home():
 
             <a href="/admin/users" style="color:#38bdf8">
                 👤 Manage Users
-            </a><br><br>
+            </a>
+
+            <br><br>
 
             <a href="/admin/payments" style="color:#38bdf8">
                 💳 Approve Payments
-            </a><br><br>
+            </a>
+
+            <br><br>
 
             <a href="/admin/signals" style="color:#38bdf8">
                 📊 Create Signals
-            </a><br><br>
+            </a>
+
+            <br><br>
 
             <a href="/admin/content" style="color:#38bdf8">
                 📁 Upload Content
-            </a><br><br>
+            </a>
+
+            <br><br>
 
             <a href="/logout" style="color:red">
                 🚪 Logout
