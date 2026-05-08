@@ -1,28 +1,33 @@
 from flask import Flask
 import os
-import sqlite3
 
+from app.database import DATABASE, init_db
+
+# =========================
+# APP CONFIG
+# =========================
 app = Flask(__name__)
 
-app.secret_key = os.environ.get("SECRET_KEY", "secret123")
-
-# =========================
-# DATABASE
-# =========================
-from app.database import DATABASE, init_db
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "change_this_in_production"
+)
 
 app.config["DATABASE"] = DATABASE
 
+
 # =========================
-# INIT DB
+# INIT DATABASE SAFELY
 # =========================
 with app.app_context():
+    try:
+        print("📦 Using DB:", DATABASE)
+        init_db()
+        print("✅ Database initialized successfully")
 
-    print("USING DB:", DATABASE)
+    except Exception as e:
+        print("❌ Database init failed:", str(e))
 
-    init_db()
-
-    print("✅ Database initialized successfully")
 
 # =========================
 # IMPORT BLUEPRINTS
@@ -32,6 +37,7 @@ from app.routes.auth import auth_bp
 from app.routes.user import user_bp
 from app.routes.admin import admin_bp
 
+
 # =========================
 # REGISTER BLUEPRINTS
 # =========================
@@ -40,62 +46,18 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(admin_bp)
 
-# =========================
-# TEMP ADMIN CREATOR
-# DELETE AFTER USE
-# =========================
-@app.route("/make-admin")
-def make_admin():
-
-    conn = sqlite3.connect(app.config["DATABASE"])
-    cur = conn.cursor()
-
-    cur.execute("""
-        UPDATE users
-        SET role='admin'
-        WHERE phone='254717434943'
-    """)
-
-    conn.commit()
-    conn.close()
-
-    return "✅ Admin updated successfully"
-
 
 # =========================
-# CHECK USERS
+# HEALTH CHECK (SAFE)
 # =========================
-@app.route("/check-users")
-def check_users():
+@app.route("/health")
+def health():
 
-    conn = sqlite3.connect(app.config["DATABASE"])
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
+    return {
+        "status": "running",
+        "database": "connected"
+    }
 
-    users = cur.execute("""
-        SELECT id, phone, role
-        FROM users
-    """).fetchall()
-
-    conn.close()
-
-    result = ""
-
-    for u in users:
-
-        result += f"""
-        ID: {u['id']} |
-        Phone: {u['phone']} |
-        Role: {u['role']} <br>
-        """
-
-    return result
-
-
-# =========================
-# DEBUG ROUTES
-# =========================
-print(app.url_map)
 
 # =========================
 # START SERVER
@@ -103,6 +65,8 @@ print(app.url_map)
 if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))
+
+    print("🚀 Starting server on port", port)
 
     app.run(
         host="0.0.0.0",
