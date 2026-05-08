@@ -8,22 +8,28 @@ from flask import session, redirect, url_for
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not session.get("user_id"):
-            return redirect(url_for("auth.login"))
+
+        # User not logged in
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+
         return func(*args, **kwargs)
+
     return wrapper
 
 
 # =========================
-# ADMIN REQUIRED (SECURE)
+# ADMIN REQUIRED
 # =========================
 def admin_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
 
-        if not session.get("user_id"):
-            return redirect(url_for("auth.login"))
+        # Not logged in
+        if "user_id" not in session:
+            return redirect(url_for("login"))
 
+        # Logged in but not admin
         if session.get("role") != "admin":
             return redirect(url_for("user.dashboard"))
 
