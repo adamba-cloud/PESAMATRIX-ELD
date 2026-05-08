@@ -1,35 +1,33 @@
-from functools import wraps
-from flask import session, redirect, url_for, request
+import sqlite3
+from flask import request, current_app
 
 
 # =========================
-# LOGIN REQUIRED
+# REQUEST LOGGER
 # =========================
-def login_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
+def log_request(response):
 
-        if "user_id" not in session:
-            return redirect(url_for("auth.login"))
+    try:
+        conn = sqlite3.connect(current_app.config["DATABASE"])
+        cursor = conn.cursor()
 
-        return f(*args, **kwargs)
+        cursor.execute("""
+            INSERT INTO request_logs
+            (ip, method, path, status, user_agent, referer)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            request.remote_addr,
+            request.method,
+            request.path,
+            response.status_code,
+            request.headers.get("User-Agent"),
+            request.referrer
+        ))
 
-    return wrapper
+        conn.commit()
+        conn.close()
 
+    except Exception as e:
+        print("Logging error:", e)
 
-# =========================
-# ADMIN REQUIRED
-# =========================
-def admin_required(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-
-        if "user_id" not in session:
-            return redirect(url_for("auth.login"))
-
-        if session.get("role") != "admin":
-            return redirect(url_for("user.dashboard"))
-
-        return f(*args, **kwargs)
-
-    return wrapper
+    return response
