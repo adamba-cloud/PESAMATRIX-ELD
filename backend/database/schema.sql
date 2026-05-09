@@ -29,10 +29,21 @@ CREATE TABLE IF NOT EXISTS payments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- AUDIT LOGS
+-- AUDIT LOGS TABLE
 CREATE TABLE IF NOT EXISTS audit_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     action TEXT,
     user_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- SUBSCRIPTIONS TABLE
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    plan TEXT, -- FREE / VIP / PRO
+    status TEXT DEFAULT 'active', -- active / expired
+    start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_date TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
 );
