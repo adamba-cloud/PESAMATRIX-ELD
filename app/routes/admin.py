@@ -1,9 +1,9 @@
 from flask import Blueprint, current_app, redirect, render_template, session
 import sqlite3
 import secrets
+from functools import wraps   # ✅ IMPORTANT FIX
 
 from app.utils.ui import layout
-from app.utils.decorators import admin_required
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -15,6 +15,22 @@ def get_db():
     conn = sqlite3.connect(current_app.config["DATABASE"])
     conn.row_factory = sqlite3.Row
     return conn
+
+
+# =========================
+# ADMIN DECORATOR (FIXED)
+# =========================
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        # ❌ block if not logged in or not admin
+        if session.get("role") != "admin":
+            return "Unauthorized", 403
+
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 # =========================
@@ -42,7 +58,7 @@ def test_session():
 
 
 # =========================
-# DASHBOARD (REAL VIEW - NOT DEBUG)
+# DASHBOARD (REAL)
 # =========================
 @admin_bp.route("/dashboard")
 @admin_required
