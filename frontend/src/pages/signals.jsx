@@ -1,6 +1,23 @@
+import { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar";
+import API from "../api/api";
 
 export default function Signals() {
+  const [signals, setSignals] = useState([]);
+
+  useEffect(() => {
+    const fetchSignals = async () => {
+      try {
+        const res = await API.get("/signals");
+        setSignals(res.data.signals);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchSignals();
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-[#0B0F19] text-white">
 
@@ -21,62 +38,38 @@ export default function Signals() {
         {/* Signals List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-          {/* BUY Signal */}
-          <div className="bg-[#111827] border border-green-600 rounded-lg p-5 hover:scale-[1.02] transition">
+          {signals.map((s, index) => (
+            <div
+              key={index}
+              className={`bg-[#111827] border rounded-lg p-5 hover:scale-[1.02] transition ${
+                s.type === "BUY" ? "border-green-600" : "border-red-600"
+              }`}
+            >
 
-            <h2 className="text-green-400 font-bold text-lg">
-              BUY - XAUUSD
-            </h2>
+              <h2
+                className={
+                  s.type === "BUY"
+                    ? "text-green-400 font-bold text-lg"
+                    : "text-red-400 font-bold text-lg"
+                }
+              >
+                {s.type} - {s.pair}
+              </h2>
 
-            <p className="text-gray-400 mt-2 text-sm">
-              Entry: 3320
-            </p>
-            <p className="text-gray-400 text-sm">
-              TP: 3350
-            </p>
-            <p className="text-gray-400 text-sm">
-              SL: 3300
-            </p>
+              <p className="text-gray-400 mt-2 text-sm">
+                Entry: {s.entry}
+              </p>
 
-          </div>
+              <p className="text-gray-400 text-sm">
+                TP: {s.tp}
+              </p>
 
-          {/* SELL Signal */}
-          <div className="bg-[#111827] border border-red-600 rounded-lg p-5 hover:scale-[1.02] transition">
+              <p className="text-gray-400 text-sm">
+                SL: {s.sl}
+              </p>
 
-            <h2 className="text-red-400 font-bold text-lg">
-              SELL - EURUSD
-            </h2>
-
-            <p className="text-gray-400 mt-2 text-sm">
-              Entry: 1.1200
-            </p>
-            <p className="text-gray-400 text-sm">
-              TP: 1.1100
-            </p>
-            <p className="text-gray-400 text-sm">
-              SL: 1.1250
-            </p>
-
-          </div>
-
-          {/* BUY Signal */}
-          <div className="bg-[#111827] border border-green-600 rounded-lg p-5 hover:scale-[1.02] transition">
-
-            <h2 className="text-green-400 font-bold text-lg">
-              BUY - BTCUSDT
-            </h2>
-
-            <p className="text-gray-400 mt-2 text-sm">
-              Entry: 95000
-            </p>
-            <p className="text-gray-400 text-sm">
-              TP: 98000
-            </p>
-            <p className="text-gray-400 text-sm">
-              SL: 93000
-            </p>
-
-          </div>
+            </div>
+          ))}
 
         </div>
 
