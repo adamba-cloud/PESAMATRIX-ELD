@@ -1,603 +1,249 @@
-from flask import (
-    Blueprint,
-    current_app,
-    redirect,
-    render_template,
-    session
-)
+import React, { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-import sqlite3
-import secrets
+export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    users: 0,
+    payments: 0,
+    signals: 0,
+    content: 0,
+    logs: 0,
+    licenses: 0,
+  });
 
-from functools import wraps
+  const [users, setUsers] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [signals, setSignals] = useState([]);
+  const [content, setContent] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [licenses, setLicenses] = useState([]);
 
-from app.utils.ui import layout
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [loading, setLoading] = useState(true);
 
+  // 🔥 CHANGE THIS IN PRODUCTION
+  const API = "http://localhost:5000/superadmin";
 
-# ====================================================
-# BLUEPRINT
-# ====================================================
-admin2_bp = Blueprint(
-    "admin2",
-    __name__,
-    url_prefix="/superadmin"
-)
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
+  async function fetchAll() {
+    setLoading(true);
 
-# ====================================================
-# DB HELPER
-# ====================================================
-def get_db():
+    try {
+      const res = await fetch(`${API}/dashboard-data`, {
+        credentials: "include",
+      });
 
-    conn = sqlite3.connect(
-        current_app.config["DATABASE"]
-    )
+      const data = await res.json();
 
-    conn.row_factory = sqlite3.Row
+      setStats(data.stats || {});
+      setUsers(data.users || []);
+      setPayments(data.payments || []);
+      setSignals(data.signals || []);
+      setContent(data.content || []);
+      setLogs(data.logs || []);
+      setLicenses(data.licenses || []);
+    } catch (err) {
+      console.error("API error:", err);
+    }
 
-    return conn
+    setLoading(false);
+  }
 
+  return (
+    <div className="min-h-screen bg-gray-950 text-white p-6">
 
-# ====================================================
-# SUPER ADMIN DECORATOR
-# ====================================================
-def super_admin_required(func):
+      {/* HEADER */}
+      <h1 className="text-2xl font-bold mb-6">
+        🛠 Super Admin Dashboard
+      </h1>
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
+      {/* NAVIGATION */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {[
+          "dashboard",
+          "users",
+          "payments",
+          "signals",
+          "content",
+          "licenses",
+          "logs",
+        ].map((tab) => (
+          <Button key={tab} onClick={() => setActiveTab(tab)}>
+            {tab.toUpperCase()}
+          </Button>
+        ))}
+      </div>
 
-        print("SESSION =", dict(session))
+      {/* ================= DASHBOARD ================= */}
+      {activeTab === "dashboard" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        # BLOCK NON ADMINS
-        if session.get("role") != "admin":
-            return redirect("/login")
+          <Card>
+            <CardContent className="p-4">
+              <h2>👤 Users</h2>
+              <p className="text-3xl">{stats.users}</p>
+            </CardContent>
+          </Card>
 
-        return func(*args, **kwargs)
+          <Card>
+            <CardContent className="p-4">
+              <h2>💳 Payments</h2>
+              <p className="text-3xl">{stats.payments}</p>
+            </CardContent>
+          </Card>
 
-    return wrapper
+          <Card>
+            <CardContent className="p-4">
+              <h2>📊 Signals</h2>
+              <p className="text-3xl">{stats.signals}</p>
+            </CardContent>
+          </Card>
 
+          <Card>
+            <CardContent className="p-4">
+              <h2>📁 Content</h2>
+              <p className="text-3xl">{stats.content}</p>
+            </CardContent>
+          </Card>
 
-# ====================================================
-# ROOT
-# ====================================================
-@admin2_bp.route("/")
-def home():
+          <Card>
+            <CardContent className="p-4">
+              <h2>🔐 Licenses</h2>
+              <p className="text-3xl">{stats.licenses}</p>
+            </CardContent>
+          </Card>
 
-    return redirect("/superadmin/dashboard")
-
-
-# ====================================================
-# TEST ROUTE
-# ====================================================
-@admin2_bp.route("/test")
-def test():
-
-    return """
-    <h1 style='color:#22c55e'>
-        ✅ SUPER ADMIN WORKING
-    </h1>
-    """
-
-
-# ====================================================
-# SESSION DEBUG
-# ====================================================
-@admin2_bp.route("/test-session")
-def test_session():
-
-    return str(dict(session))
-
-
-# ====================================================
-# DASHBOARD
-# ====================================================
-@admin2_bp.route("/dashboard")
-@super_admin_required
-def dashboard():
-
-    conn = get_db()
-
-    users = conn.execute(
-        "SELECT COUNT(*) FROM users"
-    ).fetchone()[0]
-
-    payments = conn.execute(
-        "SELECT COUNT(*) FROM payments"
-    ).fetchone()[0]
-
-    signals = conn.execute(
-        "SELECT COUNT(*) FROM signals"
-    ).fetchone()[0]
-
-    content = conn.execute(
-        "SELECT COUNT(*) FROM content"
-    ).fetchone()[0]
-
-    conn.close()
-
-    return layout(f"""
-
-    <div style="padding:20px">
-
-        <h1 style="
-            color:#38bdf8;
-            font-size:32px;
-        ">
-            🛠 SUPER ADMIN DASHBOARD
-        </h1>
-
-        <hr><br>
-
-        <div class="grid">
-
-            <div class="card">
-                <h2>👤 {users}</h2>
-                <p>Users</p>
-            </div>
-
-            <div class="card">
-                <h2>💳 {payments}</h2>
-                <p>Payments</p>
-            </div>
-
-            <div class="card">
-                <h2>📊 {signals}</h2>
-                <p>Signals</p>
-            </div>
-
-            <div class="card">
-                <h2>📁 {content}</h2>
-                <p>Content</p>
-            </div>
+          <Card>
+            <CardContent className="p-4">
+              <h2>📡 Logs</h2>
+              <p className="text-3xl">{stats.logs}</p>
+            </CardContent>
+          </Card>
 
         </div>
+      )}
 
-        <br><br>
+      {/* ================= USERS ================= */}
+      {activeTab === "users" && (
+        <div className="space-y-3">
+          <h2 className="text-xl mb-3">👥 Users</h2>
 
-        <div class="card">
+          {users.map((u) => (
+            <Card key={u.id}>
+              <CardContent className="p-3 flex justify-between">
+                <div>
+                  <p className="font-bold">{u.name}</p>
+                  <p>{u.email}</p>
+                  <p className="text-sm text-gray-400">{u.role}</p>
+                </div>
 
-            <h3>⚡ Super Admin Controls</h3>
-
-            <a href="/superadmin/users">
-                👥 Manage Users
-            </a>
-
-            <br><br>
-
-            <a href="/superadmin/payments">
-                💳 Manage Payments
-            </a>
-
-            <br><br>
-
-            <a href="/superadmin/signals">
-                📊 Manage Signals
-            </a>
-
-            <br><br>
-
-            <a href="/superadmin/content">
-                📁 Manage Content
-            </a>
-
-            <br><br>
-
-            <a href="/superadmin/codes">
-                🔐 Access Codes
-            </a>
-
-            <br><br>
-
-            <a href="/superadmin/logs">
-                📡 System Logs
-            </a>
-
-            <br><br>
-
-            <a href="/logout" style="color:red">
-                Logout
-            </a>
-
+                <Button>Manage</Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+      )}
+
+      {/* ================= PAYMENTS ================= */}
+      {activeTab === "payments" && (
+        <div className="space-y-3">
+          <h2 className="text-xl mb-3">💳 Payments (M-Pesa)</h2>
+
+          {payments.map((p) => (
+            <Card key={p.id}>
+              <CardContent className="p-3">
+                <p>📱 {p.phone}</p>
+                <p>💰 {p.amount}</p>
+                <p>📦 {p.plan}</p>
+                <p>Status: {p.status}</p>
+                <p>Ref: {p.mpesa_code}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* ================= SIGNALS ================= */}
+      {activeTab === "signals" && (
+        <div className="space-y-3">
+          <h2 className="text-xl mb-3">📊 Trading Signals</h2>
+
+          {signals.map((s) => (
+            <Card key={s.id}>
+              <CardContent className="p-3">
+                <p>📈 Asset: {s.asset}</p>
+                <p>Entry: {s.entry}</p>
+                <p>TP: {s.tp}</p>
+                <p>SL: {s.sl}</p>
+                <p>Status: {s.status}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* ================= CONTENT ================= */}
+      {activeTab === "content" && (
+        <div className="space-y-3">
+          <h2 className="text-xl mb-3">📁 Content Library</h2>
+
+          {content.map((c) => (
+            <Card key={c.id}>
+              <CardContent className="p-3">
+                <p>📌 {c.title}</p>
+                <p>Type: {c.type}</p>
+                <a
+                  href={c.link}
+                  target="_blank"
+                  className="text-blue-400"
+                >
+                  Open
+                </a>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* ================= LICENSES ================= */}
+      {activeTab === "licenses" && (
+        <div className="space-y-3">
+          <h2 className="text-xl mb-3">🔐 Access Licenses</h2>
+
+          {licenses.map((l) => (
+            <Card key={l.id}>
+              <CardContent className="p-3">
+                <p>Code: {l.code}</p>
+                <p>User: {l.user_id}</p>
+                <p>Used: {l.used}</p>
+                <p>Status: {l.status}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* ================= LOGS ================= */}
+      {activeTab === "logs" && (
+        <div className="space-y-3">
+          <h2 className="text-xl mb-3">📡 System Logs</h2>
+
+          {logs.map((l, i) => (
+            <Card key={i}>
+              <CardContent className="p-3">
+                <p>{l.method} - {l.path}</p>
+                <p>{l.ip_address}</p>
+                <p>{l.timestamp}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
     </div>
-
-    """)
-
-
-# ====================================================
-# USERS
-# ====================================================
-@admin2_bp.route("/users")
-@super_admin_required
-def users():
-
-    conn = get_db()
-
-    data = conn.execute("""
-        SELECT *
-        FROM users
-        ORDER BY id DESC
-    """).fetchall()
-
-    conn.close()
-
-    rows = ""
-
-    for u in data:
-
-        color = (
-            "#22c55e"
-            if u["status"] == "active"
-            else "#ef4444"
-        )
-
-        rows += f"""
-
-        <div class="card">
-
-            <b>👤 {u['name']}</b><br><br>
-
-            📱 {u['phone']}<br>
-
-            📧 {u['email']}<br>
-
-            🎭 Role: {u['role']}<br>
-
-            Status:
-            <b style="color:{color}">
-                {u['status']}
-            </b>
-
-            <br><br>
-
-            <a href="/superadmin/generate-code/{u['id']}">
-                🔐 Generate Access Code
-            </a>
-
-        </div>
-
-        """
-
-    return layout(f"""
-
-    <h2>👥 USERS MANAGEMENT</h2>
-
-    <div class="grid">
-
-        {rows}
-
-    </div>
-
-    """)
-
-
-# ====================================================
-# PAYMENTS
-# ====================================================
-@admin2_bp.route("/payments")
-@super_admin_required
-def payments():
-
-    conn = get_db()
-
-    data = conn.execute("""
-        SELECT *
-        FROM payments
-        ORDER BY id DESC
-    """).fetchall()
-
-    conn.close()
-
-    rows = ""
-
-    for p in data:
-
-        rows += f"""
-
-        <div class="card">
-
-            📱 {p['phone']}<br><br>
-
-            💳 {p['mpesa_code']}<br>
-
-            💰 {p['amount']}<br>
-
-            📦 {p['plan']}<br>
-
-            Status:
-            <b>{p['status']}</b>
-
-        </div>
-
-        """
-
-    return layout(f"""
-
-    <h2>💳 PAYMENTS</h2>
-
-    <div class="grid">
-
-        {rows}
-
-    </div>
-
-    """)
-
-
-# ====================================================
-# SIGNALS
-# ====================================================
-@admin2_bp.route("/signals")
-@super_admin_required
-def signals():
-
-    conn = get_db()
-
-    data = conn.execute("""
-        SELECT *
-        FROM signals
-        ORDER BY id DESC
-    """).fetchall()
-
-    conn.close()
-
-    rows = ""
-
-    for s in data:
-
-        rows += f"""
-
-        <div class="card">
-
-            📊 <b>{s['asset']}</b><br><br>
-
-            Entry: {s['entry']}<br>
-
-            TP: {s['tp']}<br>
-
-            SL: {s['sl']}<br>
-
-            Status: {s['status']}
-
-        </div>
-
-        """
-
-    return layout(f"""
-
-    <h2>📊 SIGNALS</h2>
-
-    <div class="grid">
-
-        {rows}
-
-    </div>
-
-    """)
-
-
-# ====================================================
-# CONTENT
-# ====================================================
-@admin2_bp.route("/content")
-@super_admin_required
-def content():
-
-    conn = get_db()
-
-    data = conn.execute("""
-        SELECT *
-        FROM content
-        ORDER BY id DESC
-    """).fetchall()
-
-    conn.close()
-
-    rows = ""
-
-    for c in data:
-
-        rows += f"""
-
-        <div class="card">
-
-            📁 {c['type']}<br><br>
-
-            <b>{c['title']}</b><br><br>
-
-            <a href="{c['link']}" target="_blank">
-                Open Content
-            </a>
-
-        </div>
-
-        """
-
-    return layout(f"""
-
-    <h2>📁 CONTENT LIBRARY</h2>
-
-    <div class="grid">
-
-        {rows}
-
-    </div>
-
-    """)
-
-
-# ====================================================
-# GENERATE ACCESS CODE
-# ====================================================
-@admin2_bp.route("/generate-code/<int:user_id>")
-@super_admin_required
-def generate_code(user_id):
-
-    conn = get_db()
-
-    code = secrets.token_hex(8)
-
-    conn.execute("""
-
-        INSERT INTO access_codes
-        (
-            user_id,
-            code,
-            status,
-            used,
-            expires_at
-        )
-
-        VALUES
-        (
-            ?, ?, ?, ?,
-            datetime('now', '+7 days')
-        )
-
-    """, (
-        user_id,
-        code,
-        "active",
-        0
-    ))
-
-    conn.commit()
-    conn.close()
-
-    return layout(f"""
-
-    <div class="card">
-
-        <h2>🔐 ACCESS CODE GENERATED</h2>
-
-        <br>
-
-        <p>User ID: {user_id}</p>
-
-        <div style="
-            background:#111;
-            color:#0f0;
-            padding:15px;
-            font-size:20px;
-            border-radius:10px;
-        ">
-
-            {code}
-
-        </div>
-
-        <br>
-
-        <p>⏳ Valid for 7 days</p>
-
-        <a href="/superadmin/users">
-            ← Back to Users
-        </a>
-
-    </div>
-
-    """)
-
-
-# ====================================================
-# ACCESS CODES
-# ====================================================
-@admin2_bp.route("/codes")
-@super_admin_required
-def codes():
-
-    conn = get_db()
-
-    data = conn.execute("""
-        SELECT *
-        FROM access_codes
-        ORDER BY id DESC
-    """).fetchall()
-
-    conn.close()
-
-    rows = ""
-
-    for c in data:
-
-        rows += f"""
-
-        <div class="card">
-
-            🔐 <b>{c['code']}</b><br><br>
-
-            User: {c['user_id']}<br>
-
-            Status: {c['status']}<br>
-
-            Used: {c['used']}<br>
-
-            Expires: {c['expires_at']}<br>
-
-        </div>
-
-        """
-
-    return layout(f"""
-
-    <h2>🔐 ACCESS CODES</h2>
-
-    <div class="grid">
-
-        {rows}
-
-    </div>
-
-    """)
-
-
-# ====================================================
-# LOGS
-# ====================================================
-@admin2_bp.route("/logs")
-@super_admin_required
-def logs():
-
-    conn = get_db()
-
-    logs = conn.execute("""
-        SELECT *
-        FROM request_logs
-        ORDER BY timestamp DESC
-        LIMIT 200
-    """).fetchall()
-
-    conn.close()
-
-    rows = ""
-
-    for log in logs:
-
-        rows += f"""
-
-        <div class="card">
-
-            🌐 Path: {log['path']}<br><br>
-
-            📡 Method: {log['method']}<br>
-
-            🕒 Time: {log['timestamp']}<br>
-
-            👤 IP: {log['ip_address']}
-
-        </div>
-
-        """
-
-    return layout(f"""
-
-    <h2>📡 SYSTEM LOGS</h2>
-
-    <div class="grid">
-
-        {rows}
-
-    </div>
-
-    """)
+  );
+}
