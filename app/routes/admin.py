@@ -34,11 +34,11 @@ def admin_test():
 
 
 # =========================
-# DASHBOARD (TEMP DEBUG VERSION)
+# DASHBOARD (SESSION DEBUG VERSION)
 # =========================
 @admin_bp.route("/dashboard")
 def dashboard():
-    return "DASHBOARD HIT"
+    return str(dict(session))
 
 
 # =========================
