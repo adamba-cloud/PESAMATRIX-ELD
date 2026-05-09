@@ -9,7 +9,7 @@ from backend.routes.admin import admin_bp
 from backend.routes.users import users_bp
 from backend.routes.signals import signals_bp
 from backend.routes.payments import payments_bp
-from backend.routes.subscriptions import subscriptions_bp
+from backend.routes.subscriptions import subscriptions_bp  # ONLY if file exists
 
 app = Flask(__name__)
 
