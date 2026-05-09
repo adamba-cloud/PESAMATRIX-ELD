@@ -1,6 +1,19 @@
 import Sidebar from "../components/sidebar";
+import API from "../api/api";
 
 export default function Payments() {
+
+  // PAYMENT LOGIC
+  const upgrade = async () => {
+    try {
+      const res = await API.post("/payments/subscribe-vip");
+      alert(res.data.message);
+    } catch (err) {
+      alert("Upgrade failed");
+      console.log(err);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-[#0B0F19] text-white">
 
@@ -58,7 +71,10 @@ export default function Payments() {
               KES 999 / month
             </p>
 
-            <button className="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded">
+            <button
+              onClick={upgrade}
+              className="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded"
+            >
               Upgrade with M-Pesa
             </button>
 
