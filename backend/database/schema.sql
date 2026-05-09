@@ -1,30 +1,38 @@
+-- USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
     email TEXT UNIQUE,
     password TEXT,
-    role TEXT
+    role TEXT DEFAULT 'FREE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- SIGNALS TABLE
 CREATE TABLE IF NOT EXISTS signals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pair TEXT,
+    type TEXT,
     entry REAL,
-    stop_loss REAL,
-    take_profit REAL
+    tp REAL,
+    sl REAL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- PAYMENTS TABLE
 CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     amount REAL,
     mpesa_code TEXT,
-    status TEXT
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS subscriptions (
+-- AUDIT LOGS
+CREATE TABLE IF NOT EXISTS audit_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action TEXT,
     user_id INTEGER,
-    plan TEXT,
-    active INTEGER
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
