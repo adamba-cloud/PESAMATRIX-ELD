@@ -7,6 +7,9 @@ from backend.extensions import jwt, limiter
 # DATABASE INIT
 from backend.utils.db import init_db
 
+# AUTO EXPIRY SYSTEM
+from backend.utils.subscription_checker import expire_old_subscriptions
+
 # ROUTES
 from backend.routes.auth import auth_bp
 from backend.routes.admin import admin_bp
@@ -31,6 +34,9 @@ limiter.init_app(app)
 
 # INIT DATABASE (CREATE TABLES AUTOMATICALLY)
 init_db(app)
+
+# RUN SUBSCRIPTION AUTO-EXPIRY CHECK
+expire_old_subscriptions()
 
 # REGISTER BLUEPRINTS
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
