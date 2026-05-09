@@ -95,7 +95,7 @@ def register():
 
 
 # ====================================================
-# LOGIN (SINGLE SOURCE OF TRUTH)
+# LOGIN
 # ====================================================
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -119,20 +119,16 @@ def login():
 
         conn.close()
 
-        # ================= LOGIN CHECK =================
         if user and check_password_hash(user[2], password):
 
-            # 🔥 CLEAR OLD SESSION
             session.clear()
 
-            # 🔥 CREATE SESSION (THIS FIXES YOUR PROBLEM)
             session["user_id"] = user[0]
             session["name"] = user[1]
             session["role"] = user[3]
             session["status"] = user[4]
             session["account"] = user[5]
 
-            # ================= REDIRECT =================
             if user[3] == "admin":
                 return redirect("/admin/dashboard")
 
@@ -162,3 +158,15 @@ def login():
 def logout():
     session.clear()
     return redirect("/login")
+
+
+# ====================================================
+# FORCE SESSION (DEBUG ONLY - REMOVE IN PRODUCTION)
+# ====================================================
+@auth_bp.route("/force-session")
+def force_session():
+
+    session["user_id"] = 1
+    session["role"] = "admin"
+
+    return str(dict(session))
