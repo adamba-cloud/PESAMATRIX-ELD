@@ -4,6 +4,9 @@ from flask_cors import CORS
 from backend.config import Config
 from backend.extensions import jwt, limiter
 
+# DATABASE INIT
+from backend.utils.db import init_db
+
 # ROUTES
 from backend.routes.auth import auth_bp
 from backend.routes.admin import admin_bp
@@ -25,6 +28,9 @@ CORS(app)
 # INIT EXTENSIONS
 jwt.init_app(app)
 limiter.init_app(app)
+
+# INIT DATABASE (CREATE TABLES AUTOMATICALLY)
+init_db(app)
 
 # REGISTER BLUEPRINTS
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
