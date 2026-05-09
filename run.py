@@ -30,7 +30,9 @@ app.after_request(log_request)
 # INIT DATABASE SAFELY
 # =========================
 with app.app_context():
+
     try:
+
         print("📦 Using DB:", DATABASE)
 
         init_db()
@@ -38,6 +40,7 @@ with app.app_context():
         print("✅ Database initialized successfully")
 
     except Exception as e:
+
         print("❌ Database init failed:", str(e))
 
 
@@ -48,15 +51,21 @@ from app.routes.landing import landing_bp
 from app.routes.auth import auth_bp
 from app.routes.user import user_bp
 from app.routes.admin import admin_bp
+from app.routes.admin2 import admin2_bp
 
 
 # =========================
 # REGISTER BLUEPRINTS
 # =========================
 app.register_blueprint(landing_bp)
+
 app.register_blueprint(auth_bp)
+
 app.register_blueprint(user_bp)
+
 app.register_blueprint(admin_bp)
+
+app.register_blueprint(admin2_bp)
 
 
 # =========================
@@ -64,6 +73,7 @@ app.register_blueprint(admin_bp)
 # =========================
 @app.route("/health")
 def health():
+
     return {
         "status": "running",
         "database": "connected"
