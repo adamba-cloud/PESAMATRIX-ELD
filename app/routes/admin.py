@@ -34,7 +34,7 @@ def admin_test():
 
 
 # =========================
-# SESSION DEBUG ROUTE
+# SESSION DEBUG
 # =========================
 @admin_bp.route("/test-session")
 def test_session():
@@ -42,15 +42,54 @@ def test_session():
 
 
 # =========================
-# DASHBOARD (SESSION DEBUG VERSION)
+# DASHBOARD (REAL VIEW - NOT DEBUG)
 # =========================
 @admin_bp.route("/dashboard")
+@admin_required
 def dashboard():
-    return str(dict(session))
+
+    conn = get_db()
+
+    users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    payments = conn.execute("SELECT COUNT(*) FROM payments").fetchone()[0]
+    signals = conn.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
+    content = conn.execute("SELECT COUNT(*) FROM content").fetchone()[0]
+
+    conn.close()
+
+    return layout(f"""
+    <div style="padding:20px">
+
+        <h1 style="color:#38bdf8">🛠 Admin Dashboard</h1>
+
+        <div class="grid">
+            <div class="card"><h2>👤 {users}</h2><p>Users</p></div>
+            <div class="card"><h2>💳 {payments}</h2><p>Payments</p></div>
+            <div class="card"><h2>📊 {signals}</h2><p>Signals</p></div>
+            <div class="card"><h2>📁 {content}</h2><p>Content</p></div>
+        </div>
+
+        <br>
+
+        <div class="card">
+            <h3>⚡ Quick Actions</h3>
+
+            <a href="/admin/users">👥 Manage Users</a><br><br>
+            <a href="/admin/payments">💳 View Payments</a><br><br>
+            <a href="/admin/signals">📊 Trade Signals</a><br><br>
+            <a href="/admin/content">📁 Content Library</a><br><br>
+            <a href="/admin/codes">🔐 Access Codes</a><br><br>
+            <a href="/admin/logs">📡 System Logs</a><br><br>
+            <a href="/logout" style="color:red">Logout</a>
+
+        </div>
+
+    </div>
+    """)
 
 
 # =========================
-# LOGS ANALYTICS DASHBOARD
+# LOGS
 # =========================
 @admin_bp.route("/logs")
 @admin_required
@@ -88,10 +127,7 @@ def logs_dashboard():
 def users():
 
     conn = get_db()
-    data = conn.execute("""
-        SELECT id, name, phone, email, role, status
-        FROM users
-    """).fetchall()
+    data = conn.execute("SELECT * FROM users").fetchall()
     conn.close()
 
     rows = ""
@@ -235,9 +271,7 @@ def codes():
 
     conn = get_db()
     data = conn.execute("""
-        SELECT id, user_id, code, status, used, expires_at, created_at
-        FROM access_codes
-        ORDER BY id DESC
+        SELECT * FROM access_codes ORDER BY id DESC
     """).fetchall()
     conn.close()
 
