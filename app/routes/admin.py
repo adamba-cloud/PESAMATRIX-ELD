@@ -34,6 +34,14 @@ def admin_test():
 
 
 # =========================
+# SESSION DEBUG ROUTE
+# =========================
+@admin_bp.route("/test-session")
+def test_session():
+    return str(dict(session))
+
+
+# =========================
 # DASHBOARD (SESSION DEBUG VERSION)
 # =========================
 @admin_bp.route("/dashboard")
