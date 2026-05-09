@@ -15,7 +15,6 @@ def subscription_required(fn):
         email = get_jwt_identity()
         conn = get_db()
 
-        # check user exists
         user = conn.execute(
             "SELECT * FROM users WHERE email = ?",
             (email,)
@@ -24,7 +23,6 @@ def subscription_required(fn):
         if not user:
             return jsonify({"msg": "User not found"}), 404
 
-        # check active subscription
         subscription = conn.execute(
             "SELECT * FROM subscriptions WHERE user_id = ? AND status = 'active'",
             (user["id"],)
