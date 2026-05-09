@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 
+from backend.utils.helpers import signals
+
 admin_bp = Blueprint("admin", __name__)
 
-# shared temporary signals database
-signals = []
 
 @admin_bp.route("/create-signal", methods=["POST"])
 @jwt_required()
