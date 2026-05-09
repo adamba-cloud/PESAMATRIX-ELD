@@ -1,30 +1,31 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
-
-from backend.utils.db import get_db
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 payments_bp = Blueprint("payments", __name__)
 
+# temporary user store (replace later with DB)
+users = {
+    "test@gmail.com": {
+        "role": "FREE"
+    }
+}
 
-@payments_bp.route("/submit", methods=["POST"])
+
+@payments_bp.route("/upgrade", methods=["POST"])
 @jwt_required()
-def submit_payment():
+def upgrade_to_vip():
 
-    data = request.json
+    email = get_jwt_identity()
 
-    conn = get_db()
+    user = users.get(email)
 
-    conn.execute(
-        "INSERT INTO payments (user_id, amount, mpesa_code, status) VALUES (?, ?, ?, ?)",
-        (
-            data["user_id"],
-            data["amount"],
-            data["mpesa_code"],
-            "pending"
-        )
-    )
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
 
-    conn.commit()
-    conn.close()
+    # simulate payment success
+    user["role"] = "VIP"
 
-    return jsonify({"message": "Payment submitted"})
+    return jsonify({
+        "message": "Payment successful. You are now VIP.",
+        "role": user["role"]
+    })
