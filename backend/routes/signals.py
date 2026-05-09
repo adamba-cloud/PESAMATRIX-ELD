@@ -1,43 +1,37 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
-
-from backend.utils.db import get_db
 
 signals_bp = Blueprint("signals", __name__)
 
+# temporary fake signals database
+signals = [
+    {
+        "pair": "XAUUSD",
+        "type": "BUY",
+        "entry": 3320,
+        "tp": 3350,
+        "sl": 3300
+    },
+    {
+        "pair": "EURUSD",
+        "type": "SELL",
+        "entry": 1.1200,
+        "tp": 1.1100,
+        "sl": 1.1250
+    },
+    {
+        "pair": "BTCUSDT",
+        "type": "BUY",
+        "entry": 95000,
+        "tp": 98000,
+        "sl": 93000
+    }
+]
 
-@signals_bp.route("/create", methods=["POST"])
+@signals_bp.route("/", methods=["GET"])
 @jwt_required()
-def create_signal():
+def get_signals():
 
-    data = request.json
-
-    conn = get_db()
-
-    conn.execute(
-        "INSERT INTO signals (pair, entry, stop_loss, take_profit) VALUES (?, ?, ?, ?)",
-        (
-            data["pair"],
-            data["entry"],
-            data["stop_loss"],
-            data["take_profit"]
-        )
-    )
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({"message": "Signal created"})
-
-
-@signals_bp.route("/list")
-@jwt_required()
-def list_signals():
-
-    conn = get_db()
-
-    signals = conn.execute("SELECT * FROM signals").fetchall()
-
-    conn.close()
-
-    return jsonify([dict(x) for x in signals])
+    return jsonify({
+        "signals": signals
+    })
