@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import Landing from "./pages/landing";
 import Dashboard from "./pages/dashboard";
 import Signals from "./pages/signals";
 import Payments from "./pages/payments";
@@ -12,14 +13,16 @@ function App() {
 
       <Routes>
 
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* LANDING PAGE (HOME) */}
+        <Route path="/" element={<Landing />} />
 
+        {/* MAIN APP PAGES */}
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/signals" element={<Signals />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/profile" element={<Profile />} />
 
-        {/* ADMIN ROUTE ADDED */}
+        {/* ADMIN */}
         <Route path="/admin" element={<Admin />} />
 
       </Routes>
