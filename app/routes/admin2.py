@@ -3,6 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
+
+  // =========================
+  // STATE
+  // =========================
   const [stats, setStats] = useState({
     users: 0,
     payments: 0,
@@ -21,21 +25,33 @@ export default function AdminDashboard() {
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 🔥 CHANGE THIS IN PRODUCTION
+  // =========================
+  // API BASE (CHANGE IN PROD)
+  // =========================
   const API = "http://localhost:5000/superadmin";
 
+  // =========================
+  // FETCH DATA
+  // =========================
   useEffect(() => {
-    fetchAll();
+    loadDashboard();
   }, []);
 
-  async function fetchAll() {
+  async function loadDashboard() {
     setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch(`${API}/dashboard-data`, {
+        method: "GET",
         credentials: "include",
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
 
       const data = await res.json();
 
@@ -46,19 +62,47 @@ export default function AdminDashboard() {
       setContent(data.content || []);
       setLogs(data.logs || []);
       setLicenses(data.licenses || []);
+
     } catch (err) {
-      console.error("API error:", err);
+      console.error(err);
+      setError("⚠️ Failed to load dashboard");
     }
 
     setLoading(false);
   }
 
+  // =========================
+  // LOADING STATE
+  // =========================
+  if (loading) {
+    return (
+      <div className="p-6 text-white bg-gray-950 min-h-screen">
+        <h2>Loading dashboard...</h2>
+      </div>
+    );
+  }
+
+  // =========================
+  // ERROR STATE
+  // =========================
+  if (error) {
+    return (
+      <div className="p-6 text-red-500 bg-gray-950 min-h-screen">
+        <h2>{error}</h2>
+        <Button onClick={loadDashboard}>Retry</Button>
+      </div>
+    );
+  }
+
+  // =========================
+  // UI
+  // =========================
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
 
       {/* HEADER */}
       <h1 className="text-2xl font-bold mb-6">
-        🛠 Super Admin Dashboard
+        🛠 Super Admin SaaS Dashboard
       </h1>
 
       {/* NAVIGATION */}
@@ -72,7 +116,11 @@ export default function AdminDashboard() {
           "licenses",
           "logs",
         ].map((tab) => (
-          <Button key={tab} onClick={() => setActiveTab(tab)}>
+          <Button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? "bg-blue-600" : ""}
+          >
             {tab.toUpperCase()}
           </Button>
         ))}
@@ -129,118 +177,125 @@ export default function AdminDashboard() {
 
       {/* ================= USERS ================= */}
       {activeTab === "users" && (
-        <div className="space-y-3">
+        <div>
           <h2 className="text-xl mb-3">👥 Users</h2>
 
-          {users.map((u) => (
-            <Card key={u.id}>
-              <CardContent className="p-3 flex justify-between">
-                <div>
-                  <p className="font-bold">{u.name}</p>
-                  <p>{u.email}</p>
-                  <p className="text-sm text-gray-400">{u.role}</p>
-                </div>
-
-                <Button>Manage</Button>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="space-y-3">
+            {users.map((u) => (
+              <Card key={u.id}>
+                <CardContent className="p-3 flex justify-between">
+                  <div>
+                    <p className="font-bold">{u.name}</p>
+                    <p>{u.email}</p>
+                    <p className="text-gray-400 text-sm">{u.role}</p>
+                  </div>
+                  <Button>Manage</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ================= PAYMENTS ================= */}
       {activeTab === "payments" && (
-        <div className="space-y-3">
-          <h2 className="text-xl mb-3">💳 Payments (M-Pesa)</h2>
+        <div>
+          <h2 className="text-xl mb-3">💳 M-Pesa Payments</h2>
 
-          {payments.map((p) => (
-            <Card key={p.id}>
-              <CardContent className="p-3">
-                <p>📱 {p.phone}</p>
-                <p>💰 {p.amount}</p>
-                <p>📦 {p.plan}</p>
-                <p>Status: {p.status}</p>
-                <p>Ref: {p.mpesa_code}</p>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="space-y-3">
+            {payments.map((p) => (
+              <Card key={p.id}>
+                <CardContent className="p-3">
+                  <p>📱 {p.phone}</p>
+                  <p>💰 {p.amount}</p>
+                  <p>📦 {p.plan}</p>
+                  <p>Status: {p.status}</p>
+                  <p>Ref: {p.mpesa_code}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ================= SIGNALS ================= */}
       {activeTab === "signals" && (
-        <div className="space-y-3">
+        <div>
           <h2 className="text-xl mb-3">📊 Trading Signals</h2>
 
-          {signals.map((s) => (
-            <Card key={s.id}>
-              <CardContent className="p-3">
-                <p>📈 Asset: {s.asset}</p>
-                <p>Entry: {s.entry}</p>
-                <p>TP: {s.tp}</p>
-                <p>SL: {s.sl}</p>
-                <p>Status: {s.status}</p>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="space-y-3">
+            {signals.map((s) => (
+              <Card key={s.id}>
+                <CardContent className="p-3">
+                  <p>📈 {s.asset}</p>
+                  <p>Entry: {s.entry}</p>
+                  <p>TP: {s.tp}</p>
+                  <p>SL: {s.sl}</p>
+                  <p>Status: {s.status}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ================= CONTENT ================= */}
       {activeTab === "content" && (
-        <div className="space-y-3">
+        <div>
           <h2 className="text-xl mb-3">📁 Content Library</h2>
 
-          {content.map((c) => (
-            <Card key={c.id}>
-              <CardContent className="p-3">
-                <p>📌 {c.title}</p>
-                <p>Type: {c.type}</p>
-                <a
-                  href={c.link}
-                  target="_blank"
-                  className="text-blue-400"
-                >
-                  Open
-                </a>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="space-y-3">
+            {content.map((c) => (
+              <Card key={c.id}>
+                <CardContent className="p-3">
+                  <p>{c.title}</p>
+                  <p className="text-gray-400">{c.type}</p>
+                  <a href={c.link} className="text-blue-400">
+                    Open
+                  </a>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ================= LICENSES ================= */}
       {activeTab === "licenses" && (
-        <div className="space-y-3">
+        <div>
           <h2 className="text-xl mb-3">🔐 Access Licenses</h2>
 
-          {licenses.map((l) => (
-            <Card key={l.id}>
-              <CardContent className="p-3">
-                <p>Code: {l.code}</p>
-                <p>User: {l.user_id}</p>
-                <p>Used: {l.used}</p>
-                <p>Status: {l.status}</p>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="space-y-3">
+            {licenses.map((l) => (
+              <Card key={l.id}>
+                <CardContent className="p-3">
+                  <p>Code: {l.code}</p>
+                  <p>User: {l.user_id}</p>
+                  <p>Used: {l.used}</p>
+                  <p>Status: {l.status}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ================= LOGS ================= */}
       {activeTab === "logs" && (
-        <div className="space-y-3">
+        <div>
           <h2 className="text-xl mb-3">📡 System Logs</h2>
 
-          {logs.map((l, i) => (
-            <Card key={i}>
-              <CardContent className="p-3">
-                <p>{l.method} - {l.path}</p>
-                <p>{l.ip_address}</p>
-                <p>{l.timestamp}</p>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="space-y-3">
+            {logs.map((l, i) => (
+              <Card key={i}>
+                <CardContent className="p-3">
+                  <p>{l.method} {l.path}</p>
+                  <p>{l.ip_address}</p>
+                  <p className="text-gray-400">{l.timestamp}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
