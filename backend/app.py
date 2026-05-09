@@ -2,22 +2,22 @@ from flask import Flask
 from flask_cors import CORS
 
 # =========================
-# ROUTES
+# ROUTES (FIXED IMPORTS)
 # =========================
-from routes.auth import auth_bp
-from routes.admin import admin_bp
-from routes.user import user_bp
-from routes.users import users_bp
-from routes.payments import payments_bp
-from routes.signals import signals_bp
-from routes.content import content_bp
-from routes.licenses import licenses_bp
-from routes.audit import audit_bp
+from backend.routes.auth import auth_bp
+from backend.routes.admin import admin_bp
+from backend.routes.user import user_bp
+from backend.routes.users import users_bp
+from backend.routes.payments import payments_bp
+from backend.routes.signals import signals_bp
+from backend.routes.content import content_bp
+from backend.routes.licenses import licenses_bp
+from backend.routes.audit import audit_bp
 
 # =========================
 # DB CLEANUP
 # =========================
-from utils.db import close_db
+from backend.utils.db import close_db
 
 
 # =========================
@@ -25,11 +25,11 @@ from utils.db import close_db
 # =========================
 app = Flask(__name__)
 
-# IMPORTANT: move to env in production later
+# ⚠️ move to .env in production later
 app.config["SECRET_KEY"] = "change-this-in-production"
 app.config["DATABASE"] = "database.db"
 
-# enable frontend communication (React)
+# allow React frontend
 CORS(app, supports_credentials=True)
 
 
@@ -48,7 +48,7 @@ app.register_blueprint(audit_bp, url_prefix="/api/audit")
 
 
 # =========================
-# CLEAN DB HANDLER (IMPORTANT)
+# CLEAN DB HANDLER
 # =========================
 app.teardown_appcontext(close_db)
 
