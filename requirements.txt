@@ -1,17 +1,8 @@
-Flask==3.0.3
-Flask-Cors==4.0.1
-
-# JWT AUTH
-PyJWT==2.9.0
-
-# SECURITY (for password hashing later)
-bcrypt==4.1.3
-
-# DATABASE (SQLite is built-in, this helps later upgrade)
-SQLAlchemy==2.0.32
-
-# ENV MANAGEMENT (production configs)
-python-dotenv==1.0.1
-
-# OPTIONAL BUT USEFUL
-gunicorn==22.0.0
+Flask
+Flask-Cors
+Flask-JWT-Extended
+Flask-Limiter
+python-dotenv
+gunicorn
+bcrypt
+Werkzeug
