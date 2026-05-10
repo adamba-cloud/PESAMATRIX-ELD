@@ -3,27 +3,41 @@ import API from "../api/api";
 
 export default function Payments() {
 
-  // PAYMENT LOGIC
+  // =========================
+  // VIP UPGRADE FUNCTION
+  // =========================
   const upgrade = async () => {
+
     try {
-      const res = await API.post("/payments/subscribe-vip");
+
+      // CALL BACKEND API
+      const res = await API.post(
+        "/payments/subscribe-vip"
+      );
+
+      // SUCCESS MESSAGE
       alert(res.data.message);
+
     } catch (err) {
-      alert("Upgrade failed");
+
       console.log(err);
+
+      // ERROR MESSAGE
+      alert("Upgrade failed");
+
     }
   };
 
   return (
     <div className="flex min-h-screen bg-[#0B0F19] text-white">
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <Sidebar />
 
-      {/* Main Content */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 p-6">
 
-        {/* Header */}
+        {/* HEADER */}
         <h1 className="text-3xl font-bold text-cyan-400 mb-2">
           Subscription & Payments
         </h1>
@@ -32,7 +46,7 @@ export default function Payments() {
           Upgrade your account to unlock VIP trading signals
         </p>
 
-        {/* Current Status */}
+        {/* CURRENT STATUS */}
         <div className="bg-[#111827] border border-gray-800 rounded-lg p-5 mb-6">
 
           <h2 className="text-lg font-semibold text-white mb-2">
@@ -53,10 +67,10 @@ export default function Payments() {
 
         </div>
 
-        {/* Upgrade Options */}
+        {/* PLANS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          {/* VIP Plan */}
+          {/* VIP PLAN */}
           <div className="bg-[#111827] border border-cyan-500 rounded-lg p-5 hover:scale-[1.02] transition">
 
             <h2 className="text-cyan-400 font-bold text-xl">
@@ -64,23 +78,25 @@ export default function Payments() {
             </h2>
 
             <p className="text-gray-400 mt-2 text-sm">
-              Access full trading signals, VIP alerts, and priority updates.
+              Access full trading signals,
+              VIP alerts, and priority updates.
             </p>
 
             <p className="text-white mt-4 text-2xl font-bold">
               KES 999 / month
             </p>
 
+            {/* CONNECTED BUTTON */}
             <button
               onClick={upgrade}
-              className="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded"
+              className="mt-4 w-full bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-2 rounded transition"
             >
               Upgrade with M-Pesa
             </button>
 
           </div>
 
-          {/* PRO Plan */}
+          {/* PRO PLAN */}
           <div className="bg-[#111827] border border-purple-500 rounded-lg p-5 hover:scale-[1.02] transition">
 
             <h2 className="text-purple-400 font-bold text-xl">
@@ -88,14 +104,15 @@ export default function Payments() {
             </h2>
 
             <p className="text-gray-400 mt-2 text-sm">
-              VIP + advanced analytics + institutional signals.
+              VIP + advanced analytics +
+              institutional signals.
             </p>
 
             <p className="text-white mt-4 text-2xl font-bold">
               $29 / month
             </p>
 
-            <button className="mt-4 w-full bg-purple-500 hover:bg-purple-600 text-black font-semibold py-2 rounded">
+            <button className="mt-4 w-full bg-purple-500 hover:bg-purple-600 text-black font-semibold py-2 rounded transition">
               Pay with Stripe
             </button>
 
@@ -103,7 +120,7 @@ export default function Payments() {
 
         </div>
 
-        {/* Payment Instructions */}
+        {/* PAYMENT METHODS */}
         <div className="mt-8 bg-[#111827] border border-gray-800 rounded-lg p-5">
 
           <h3 className="text-white font-semibold mb-2">
@@ -111,14 +128,23 @@ export default function Payments() {
           </h3>
 
           <ul className="text-gray-400 text-sm space-y-1">
-            <li>• M-Pesa (Safaricom) instant activation</li>
-            <li>• Stripe (Card payments worldwide)</li>
-            <li>• Auto subscription renewal supported</li>
+            <li>
+              • M-Pesa (Safaricom) instant activation
+            </li>
+
+            <li>
+              • Stripe (Card payments worldwide)
+            </li>
+
+            <li>
+              • Auto subscription renewal supported
+            </li>
           </ul>
 
         </div>
 
       </div>
+
     </div>
   );
 }
