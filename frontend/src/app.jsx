@@ -10,6 +10,7 @@ import Profile from "./pages/profile";
 import Admin from "./pages/admin";
 
 import ProtectedRoute from "./components/protectedroute";
+import RoleProtectedRoute from "./components/roleprotectedroute";
 
 function App() {
   return (
@@ -21,7 +22,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
 
-        {/* PROTECTED ROUTES */}
+        {/* USER DASHBOARD */}
         <Route
           path="/dashboard"
           element={
@@ -31,6 +32,7 @@ function App() {
           }
         />
 
+        {/* FREE SIGNALS */}
         <Route
           path="/signals"
           element={
@@ -40,6 +42,17 @@ function App() {
           }
         />
 
+        {/* VIP SIGNALS */}
+        <Route
+          path="/vip-signals"
+          element={
+            <RoleProtectedRoute allowedRole="VIP">
+              <Signals />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* PAYMENTS */}
         <Route
           path="/payments"
           element={
@@ -49,6 +62,7 @@ function App() {
           }
         />
 
+        {/* PROFILE */}
         <Route
           path="/profile"
           element={
@@ -58,12 +72,13 @@ function App() {
           }
         />
 
+        {/* ADMIN PANEL */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
+            <RoleProtectedRoute allowedRole="ADMIN">
               <Admin />
-            </ProtectedRoute>
+            </RoleProtectedRoute>
           }
         />
 
