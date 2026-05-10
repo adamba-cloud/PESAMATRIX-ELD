@@ -33,7 +33,17 @@ export default function Auth() {
           password: form.password
         });
 
-        localStorage.setItem("token", res.data.token);
+        // SAVE JWT TOKEN
+        localStorage.setItem(
+          "token",
+          res.data.token
+        );
+
+        // SAVE USER ROLE
+        localStorage.setItem(
+          "role",
+          res.data.role || "FREE"
+        );
 
         alert("Login successful");
 
@@ -54,6 +64,7 @@ export default function Auth() {
       }
 
     } catch (err) {
+
       console.log(err);
 
       alert(
@@ -74,7 +85,9 @@ export default function Auth() {
         </h1>
 
         <p className="text-gray-400 text-center mb-8">
-          {isLogin ? "Login to your account" : "Create a new account"}
+          {isLogin
+            ? "Login to your account"
+            : "Create a new account"}
         </p>
 
         {/* FORM */}
@@ -83,6 +96,7 @@ export default function Auth() {
           {/* NAME */}
           {!isLogin && (
             <div>
+
               <label className="text-sm text-gray-400">
                 Name
               </label>
@@ -96,11 +110,13 @@ export default function Auth() {
                 className="w-full mt-1 p-3 rounded bg-[#0B0F19] border border-gray-700 text-white outline-none focus:border-cyan-400"
                 required
               />
+
             </div>
           )}
 
           {/* EMAIL */}
           <div>
+
             <label className="text-sm text-gray-400">
               Email
             </label>
@@ -114,10 +130,12 @@ export default function Auth() {
               className="w-full mt-1 p-3 rounded bg-[#0B0F19] border border-gray-700 text-white outline-none focus:border-cyan-400"
               required
             />
+
           </div>
 
           {/* PASSWORD */}
           <div>
+
             <label className="text-sm text-gray-400">
               Password
             </label>
@@ -131,6 +149,7 @@ export default function Auth() {
               className="w-full mt-1 p-3 rounded bg-[#0B0F19] border border-gray-700 text-white outline-none focus:border-cyan-400"
               required
             />
+
           </div>
 
           {/* BUTTON */}
