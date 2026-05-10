@@ -13,14 +13,33 @@ export default function Admin() {
   });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
   };
 
   const createSignal = async () => {
     try {
-      const res = await API.post("/admin/create-signal", form);
-      alert(res.data.message);
-      setForm({ pair: "", type: "BUY", entry: "", tp: "", sl: "" });
+
+      const res = await API.post("/signals/create", {
+        pair: form.pair,
+        type: form.type,
+        entry: Number(form.entry),
+        tp: Number(form.tp),
+        sl: Number(form.sl)
+      });
+
+      alert(res.data.message || "Signal created successfully!");
+
+      setForm({
+        pair: "",
+        type: "BUY",
+        entry: "",
+        tp: "",
+        sl: ""
+      });
+
     } catch (err) {
       console.log(err);
       alert("Failed to create signal");
@@ -34,11 +53,12 @@ export default function Admin() {
 
       <div className="flex-1 p-6">
 
+        {/* HEADER */}
         <h1 className="text-3xl font-bold text-cyan-400 mb-6">
           Admin Panel
         </h1>
 
-        {/* Stats Cards */}
+        {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 
           <div className="bg-[#111827] p-5 rounded border border-gray-800">
@@ -58,7 +78,7 @@ export default function Admin() {
 
         </div>
 
-        {/* Create Signal Form */}
+        {/* FORM */}
         <div className="bg-[#111827] p-6 rounded border border-gray-800">
 
           <h2 className="text-xl font-bold mb-4 text-white">
