@@ -1,41 +1,38 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 
 from backend.utils.db import get_db
+from backend.middleware.admin_required import admin_required
 
 admin_bp = Blueprint("admin", __name__)
 
 
 # =========================
-# ADMIN DASHBOARD ANALYTICS
+# ADMIN DASHBOARD ANALYTICS (SECURED)
 # =========================
 @admin_bp.route("/analytics", methods=["GET"])
 @jwt_required()
+@admin_required
 def admin_analytics():
 
     conn = get_db()
 
-    # TOTAL USERS
     total_users = conn.execute(
         "SELECT COUNT(*) as count FROM users"
     ).fetchone()["count"]
 
-    # TOTAL VIP USERS
     vip_users = conn.execute(
         "SELECT COUNT(*) as count FROM users WHERE role = 'VIP'"
     ).fetchone()["count"]
 
-    # TOTAL SIGNALS
     total_signals = conn.execute(
         "SELECT COUNT(*) as count FROM signals"
     ).fetchone()["count"]
 
-    # TOTAL REVENUE
     revenue = conn.execute(
         "SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'success'"
     ).fetchone()["total"]
 
-    # ACTIVE SUBSCRIPTIONS
     active_subs = conn.execute(
         "SELECT COUNT(*) as count FROM subscriptions WHERE status = 'active'"
     ).fetchone()["count"]
@@ -52,13 +49,17 @@ def admin_analytics():
 
 
 # =========================
-# CREATE SIGNAL (ADMIN)
+# CREATE SIGNAL (ADMIN ONLY)
 # =========================
 @admin_bp.route("/create-signal", methods=["POST"])
 @jwt_required()
+@admin_required
 def create_signal():
 
     data = request.json
+
+    if not data:
+        return jsonify({"message": "Missing request data"}), 400
 
     conn = get_db()
 
@@ -81,4 +82,4 @@ def create_signal():
 
     return jsonify({
         "message": "Signal created successfully"
-    })
+    }), 201
