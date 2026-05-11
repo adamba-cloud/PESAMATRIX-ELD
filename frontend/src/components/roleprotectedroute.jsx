@@ -1,38 +1,41 @@
-import { Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react"
+import { Navigate } from "react-router-dom"
+
+import { getUser } from "../auth"
+import { getUserRole } from "../utils/getUserRole"
 
 export default function RoleProtectedRoute({
   children,
-  allowedRole
+  allowedRole,
 }) {
+  const [loading, setLoading] = useState(true)
+  const [authorized, setAuthorized] = useState(false)
 
-  // GET TOKEN
-  const token = localStorage.getItem("token");
+  useEffect(() => {
+    async function checkRole() {
+      const user = await getUser()
 
-  // GET USER ROLE
-  const role = localStorage.getItem("role");
+      if (!user) {
+        setAuthorized(false)
+        setLoading(false)
+        return
+      }
 
-  // NOT LOGGED IN
-  if (!token) {
-    return <Navigate to="/auth" />;
-  }
+      const role = await getUserRole(user.id)
 
-  // ADMIN ONLY ROUTE
-  if (allowedRole === "ADMIN" && role !== "ADMIN") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0F19] text-red-400 text-2xl font-bold">
-        Access denied
-      </div>
-    );
-  }
+      if (role === allowedRole) {
+        setAuthorized(true)
+      } else {
+        setAuthorized(false)
+      }
 
-  // VIP ONLY ROUTE
-  if (allowedRole === "VIP" && role !== "VIP") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0F19] text-yellow-400 text-2xl font-bold">
-        Upgrade required
-      </div>
-    );
-  }
+      setLoading(false)
+    }
 
-  return children;
+    checkRole()
+  }, [allowedRole])
+
+  if (loading) return <p>Checking permissions...</p>
+
+  return authorized ? children : <Navigate to="/dashboard" />
 }
