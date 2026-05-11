@@ -8,7 +8,7 @@ export default function Landing() {
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
 
         <h1 className="text-2xl font-bold text-cyan-400">
-          TradePro SaaS
+          PesaMatrix SaaS
         </h1>
 
         <div className="flex gap-4">
@@ -33,8 +33,8 @@ export default function Landing() {
         </h2>
 
         <p className="text-gray-400 mt-4 max-w-xl">
-          Get real-time BUY & SELL signals for Gold, Forex, and Crypto.
-          Upgrade to VIP for full access and higher accuracy insights.
+          Get real-time BUY & SELL signals for Forex, Gold, and Crypto.
+          Upgrade to VIP for premium accuracy and faster entries.
         </p>
 
         <div className="flex gap-4 mt-8">
@@ -77,13 +77,13 @@ export default function Landing() {
         <div className="bg-[#111827] p-6 rounded border border-gray-800">
           <h3 className="text-cyan-400 font-bold">Secure Payments</h3>
           <p className="text-gray-400 mt-2 text-sm">
-            Pay via M-Pesa or Stripe with instant activation.
+            Pay via M-Pesa with instant activation.
           </p>
         </div>
 
       </div>
 
-      {/* CALL TO ACTION */}
+      {/* CTA */}
       <div className="text-center py-16">
 
         <h3 className="text-2xl font-bold">
@@ -91,7 +91,7 @@ export default function Landing() {
         </h3>
 
         <p className="text-gray-400 mt-2">
-          Join thousands using TradePro SaaS signals
+          Join thousands using our trading signals system
         </p>
 
         <Link
@@ -103,9 +103,96 @@ export default function Landing() {
 
       </div>
 
+      {/* ABOUT US SECTION */}
+      <div className="
+        mx-10 mb-16
+        bg-[#111827]
+        border border-gray-800
+        rounded-xl
+        p-6
+      ">
+
+        <h2 className="text-3xl font-bold text-cyan-400 mb-4">
+          About Us
+        </h2>
+
+        <p className="text-gray-300 leading-7">
+          PesaMatrix Signals is a modern forex and crypto trading platform
+          focused on delivering high-quality trading signals, market analysis,
+          and VIP trading opportunities to traders worldwide.
+        </p>
+
+        {/* CONTACTS */}
+        <div className="mt-6">
+
+          <h3 className="text-xl font-semibold text-white mb-3">
+            Contacts
+          </h3>
+
+          <div className="space-y-2 text-gray-300">
+
+            <p>📞 +254781585319</p>
+            <p>📞 +254717434943</p>
+
+            <p>
+              🎵 TikTok:
+              <a
+                href="https://tiktok.com/@pesamatrixsignals"
+                target="_blank"
+                rel="noreferrer"
+                className="text-cyan-400 ml-2 hover:underline"
+              >
+                @pesamatrixsignals
+              </a>
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* PAYMENT METHODS */}
+        <div className="mt-8">
+
+          <h3 className="text-xl font-semibold text-white mb-3">
+            Payment Method
+          </h3>
+
+          <div className="
+            bg-[#0B0F19]
+            border border-gray-700
+            rounded-lg
+            p-5
+          ">
+
+            <p className="text-gray-300">
+              <span className="text-green-400 font-semibold">
+                Lipa Na M-Pesa
+              </span>
+            </p>
+
+            <p className="mt-2 text-gray-300">
+              Pay Bill Number:
+              <span className="text-white font-bold ml-2">
+                322372
+              </span>
+            </p>
+
+            <p className="mt-2 text-gray-300">
+              Account Number:
+              <span className="text-yellow-400 ml-2">
+                Generated during sign-in
+              </span>
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
       {/* FOOTER */}
       <div className="border-t border-gray-800 text-center py-6 text-gray-500 text-sm">
-        © {new Date().getFullYear()} TradePro SaaS. All rights reserved.
+        © {new Date().getFullYear()} PesaMatrix SaaS. All rights reserved.
       </div>
 
     </div>
