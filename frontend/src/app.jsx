@@ -1,48 +1,88 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 
-import Landing from "./pages/landing";
-import Auth from "./pages/auth";
+import Landing from "./pages/landing"
+import Auth from "./pages/auth"
 
-import Dashboard from "./pages/dashboard";
-import Signals from "./pages/signals";
-import Payments from "./pages/payments";
-import Profile from "./pages/profile";
-import Admin from "./pages/admin";
+import Dashboard from "./pages/dashboard"
+import Signals from "./pages/signals"
+import Payments from "./pages/payments"
+import Profile from "./pages/profile"
+import Admin from "./pages/admin"
 
-import ProtectedRoute from "./components/protectedroute";
-import RoleProtectedRoute from "./components/roleprotectedroute";
+import { getUser } from "./auth"
 
-function App() {
+import ProtectedRoute from "./components/protectedroute"
+import RoleProtectedRoute from "./components/roleprotectedroute"
+
+//
+// 🔐 SIMPLE AUTH GUARD (fixes your earlier version)
+//
+function AuthGuard({ children }) {
+  const [user, setUser] = React.useState(null)
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    async function checkUser() {
+      const u = await getUser()
+      setUser(u)
+      setLoading(false)
+    }
+    checkUser()
+  }, [])
+
+  if (loading) return <p>Loading...</p>
+
+  return user ? children : <Navigate to="/auth" />
+}
+
+export default function App() {
   return (
     <BrowserRouter>
-
       <Routes>
 
-        {/* PUBLIC ROUTES */}
+        {/* 🌐 PUBLIC ROUTES */}
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
 
-        {/* USER DASHBOARD */}
+        {/* 📊 PROTECTED USER ROUTES */}
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <AuthGuard>
               <Dashboard />
-            </ProtectedRoute>
+            </AuthGuard>
           }
         />
 
-        {/* FREE SIGNALS */}
         <Route
           path="/signals"
           element={
-            <ProtectedRoute>
+            <AuthGuard>
               <Signals />
-            </ProtectedRoute>
+            </AuthGuard>
           }
         />
 
-        {/* VIP SIGNALS */}
+        <Route
+          path="/payments"
+          element={
+            <AuthGuard>
+              <Payments />
+            </AuthGuard>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <AuthGuard>
+              <Profile />
+            </AuthGuard>
+          }
+        />
+
+        {/* 💎 VIP ROUTE */}
         <Route
           path="/vip-signals"
           element={
@@ -52,27 +92,7 @@ function App() {
           }
         />
 
-        {/* PAYMENTS */}
-        <Route
-          path="/payments"
-          element={
-            <ProtectedRoute>
-              <Payments />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* PROFILE */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* ADMIN PANEL */}
+        {/* 🛡️ ADMIN ROUTE */}
         <Route
           path="/admin"
           element={
@@ -83,9 +103,6 @@ function App() {
         />
 
       </Routes>
-
     </BrowserRouter>
-  );
+  )
 }
-
-export default App;
