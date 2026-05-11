@@ -1,5 +1,6 @@
-import { useState } from "react";
-import Sidebar from "../components/sidebar";
+import React, { useState } from "react";
+
+import Layout from "../components/Layout";
 import API from "../api/api";
 
 export default function Admin() {
@@ -12,6 +13,8 @@ export default function Admin() {
     sl: ""
   });
 
+  const [announcement, setAnnouncement] = useState("");
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -19,7 +22,8 @@ export default function Admin() {
     });
   };
 
-  const createSignal = async () => {
+  async function createSignal() {
+
     try {
 
       const res = await API.post("/signals/create", {
@@ -41,106 +45,316 @@ export default function Admin() {
       });
 
     } catch (err) {
+
       console.log(err);
       alert("Failed to create signal");
+
     }
-  };
+  }
+
+  function publishAnnouncement() {
+    alert("Announcement published!");
+    setAnnouncement("");
+  }
 
   return (
-    <div className="flex min-h-screen bg-[#0B0F19] text-white">
+    <Layout>
 
-      <Sidebar />
+      {/* HEADER */}
+      <div className="mb-8">
 
-      <div className="flex-1 p-6">
-
-        {/* HEADER */}
-        <h1 className="text-3xl font-bold text-cyan-400 mb-6">
+        <h1 className="text-3xl font-bold text-cyan-400">
           Admin Panel
         </h1>
 
-        {/* STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <p className="text-gray-400 mt-2">
+          Manage your trading SaaS platform
+        </p>
 
-          <div className="bg-[#111827] p-5 rounded border border-gray-800">
-            <p className="text-gray-400">Total Users</p>
-            <h2 className="text-2xl text-white">120</h2>
-          </div>
+      </div>
 
-          <div className="bg-[#111827] p-5 rounded border border-gray-800">
-            <p className="text-gray-400">Total Signals</p>
-            <h2 className="text-2xl text-white">45</h2>
-          </div>
+      {/* STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
-          <div className="bg-[#111827] p-5 rounded border border-gray-800">
-            <p className="text-gray-400">Revenue</p>
-            <h2 className="text-2xl text-white">KES 32,000</h2>
+        <div className="
+          bg-[#111827]
+          border border-gray-800
+          rounded-xl
+          p-5
+        ">
+
+          <p className="text-gray-400 text-sm">
+            Total Users
+          </p>
+
+          <h2 className="text-3xl font-bold text-cyan-400 mt-2">
+            120
+          </h2>
+
+        </div>
+
+        <div className="
+          bg-[#111827]
+          border border-gray-800
+          rounded-xl
+          p-5
+        ">
+
+          <p className="text-gray-400 text-sm">
+            Total Signals
+          </p>
+
+          <h2 className="text-3xl font-bold text-green-400 mt-2">
+            45
+          </h2>
+
+        </div>
+
+        <div className="
+          bg-[#111827]
+          border border-gray-800
+          rounded-xl
+          p-5
+        ">
+
+          <p className="text-gray-400 text-sm">
+            Revenue
+          </p>
+
+          <h2 className="text-3xl font-bold text-yellow-400 mt-2">
+            KES 32,000
+          </h2>
+
+        </div>
+
+      </div>
+
+      {/* ADMIN TOOLS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
+
+        {/* USER MANAGEMENT */}
+        <div className="
+          bg-[#111827]
+          border border-gray-800
+          rounded-xl
+          p-5
+        ">
+
+          <h2 className="text-xl font-semibold text-white mb-2">
+            User Management
+          </h2>
+
+          <p className="text-gray-400 text-sm">
+            Upgrade users to VIP or ADMIN roles.
+          </p>
+
+          <div className="mt-4 flex gap-2">
+
+            <button className="
+              px-4 py-2 rounded-lg
+              bg-cyan-500 hover:bg-cyan-600
+              transition-colors
+            ">
+              View Users
+            </button>
+
+            <button className="
+              px-4 py-2 rounded-lg
+              bg-yellow-500 hover:bg-yellow-600
+              transition-colors
+            ">
+              VIP Access
+            </button>
+
           </div>
 
         </div>
 
-        {/* FORM */}
-        <div className="bg-[#111827] p-6 rounded border border-gray-800">
+        {/* SIGNAL CONTROL */}
+        <div className="
+          bg-[#111827]
+          border border-gray-800
+          rounded-xl
+          p-5
+        ">
 
-          <h2 className="text-xl font-bold mb-4 text-white">
-            Create Trading Signal
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Signal Control
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <p className="text-gray-400 text-sm">
+            Publish, edit, or remove trading signals.
+          </p>
 
-            <input
-              name="pair"
-              value={form.pair}
-              onChange={handleChange}
-              placeholder="Pair (e.g XAUUSD)"
-              className="p-2 bg-black border border-gray-700 rounded"
-            />
+          <div className="mt-4 flex gap-2">
 
-            <select
-              name="type"
-              value={form.type}
-              onChange={handleChange}
-              className="p-2 bg-black border border-gray-700 rounded"
-            >
-              <option value="BUY">BUY</option>
-              <option value="SELL">SELL</option>
-            </select>
+            <button className="
+              px-4 py-2 rounded-lg
+              bg-green-500 hover:bg-green-600
+              transition-colors
+            ">
+              New Signal
+            </button>
 
-            <input
-              name="entry"
-              value={form.entry}
-              onChange={handleChange}
-              placeholder="Entry Price"
-              className="p-2 bg-black border border-gray-700 rounded"
-            />
-
-            <input
-              name="tp"
-              value={form.tp}
-              onChange={handleChange}
-              placeholder="Take Profit"
-              className="p-2 bg-black border border-gray-700 rounded"
-            />
-
-            <input
-              name="sl"
-              value={form.sl}
-              onChange={handleChange}
-              placeholder="Stop Loss"
-              className="p-2 bg-black border border-gray-700 rounded"
-            />
+            <button className="
+              px-4 py-2 rounded-lg
+              bg-red-500 hover:bg-red-600
+              transition-colors
+            ">
+              Delete
+            </button>
 
           </div>
 
+        </div>
+
+        {/* ANNOUNCEMENTS */}
+        <div className="
+          bg-[#111827]
+          border border-gray-800
+          rounded-xl
+          p-5
+        ">
+
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Announcements
+          </h2>
+
+          <p className="text-gray-400 text-sm">
+            Send updates to all platform users.
+          </p>
+
+          <textarea
+            value={announcement}
+            onChange={(e) => setAnnouncement(e.target.value)}
+            placeholder="Write announcement..."
+            className="
+              mt-4 w-full h-24
+              bg-[#0B0F19]
+              border border-gray-700
+              rounded-lg p-3
+              text-white
+              outline-none
+            "
+          />
+
           <button
-            onClick={createSignal}
-            className="mt-5 bg-cyan-500 hover:bg-cyan-600 text-black font-bold px-6 py-2 rounded"
+            onClick={publishAnnouncement}
+            className="
+              mt-4 px-4 py-2 rounded-lg
+              bg-cyan-500 hover:bg-cyan-600
+              transition-colors
+            "
           >
-            Create Signal
+            Publish Announcement
           </button>
 
         </div>
 
       </div>
-    </div>
+
+      {/* CREATE SIGNAL FORM */}
+      <div className="
+        bg-[#111827]
+        border border-gray-800
+        rounded-xl
+        p-6
+      ">
+
+        <h2 className="text-2xl font-bold text-white mb-5">
+          Create Trading Signal
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <input
+            name="pair"
+            value={form.pair}
+            onChange={handleChange}
+            placeholder="Pair (e.g XAUUSD)"
+            className="
+              p-3 rounded-lg
+              bg-[#0B0F19]
+              border border-gray-700
+              text-white
+              outline-none
+            "
+          />
+
+          <select
+            name="type"
+            value={form.type}
+            onChange={handleChange}
+            className="
+              p-3 rounded-lg
+              bg-[#0B0F19]
+              border border-gray-700
+              text-white
+              outline-none
+            "
+          >
+            <option value="BUY">BUY</option>
+            <option value="SELL">SELL</option>
+          </select>
+
+          <input
+            name="entry"
+            value={form.entry}
+            onChange={handleChange}
+            placeholder="Entry Price"
+            className="
+              p-3 rounded-lg
+              bg-[#0B0F19]
+              border border-gray-700
+              text-white
+              outline-none
+            "
+          />
+
+          <input
+            name="tp"
+            value={form.tp}
+            onChange={handleChange}
+            placeholder="Take Profit"
+            className="
+              p-3 rounded-lg
+              bg-[#0B0F19]
+              border border-gray-700
+              text-white
+              outline-none
+            "
+          />
+
+          <input
+            name="sl"
+            value={form.sl}
+            onChange={handleChange}
+            placeholder="Stop Loss"
+            className="
+              p-3 rounded-lg
+              bg-[#0B0F19]
+              border border-gray-700
+              text-white
+              outline-none
+            "
+          />
+
+        </div>
+
+        <button
+          onClick={createSignal}
+          className="
+            mt-6 px-6 py-3 rounded-lg
+            bg-cyan-500 hover:bg-cyan-600
+            text-black font-bold
+            transition-colors
+          "
+        >
+          Create Signal
+        </button>
+
+      </div>
+
+    </Layout>
   );
 }
