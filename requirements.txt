@@ -1,8 +1,0 @@
-Flask
-Flask-Cors
-Flask-JWT-Extended
-Flask-Limiter
-python-dotenv
-gunicorn
-bcrypt
-Werkzeug
