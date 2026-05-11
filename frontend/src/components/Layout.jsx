@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
 import { signOut } from "../auth";
 
 export default function Layout({ children }) {
@@ -36,15 +35,12 @@ export default function Layout({ children }) {
 
         {/* LOGO */}
         <div className="p-6 border-b border-gray-800">
-
           <h1 className="text-2xl font-bold text-cyan-400">
             Adamba Cloud
           </h1>
-
           <p className="text-gray-400 text-sm mt-1">
             Modern Trading SaaS Platform
           </p>
-
         </div>
 
         {/* NAVIGATION */}
@@ -63,30 +59,19 @@ export default function Layout({ children }) {
         <div className="absolute bottom-0 left-0 w-full p-4 border-t border-gray-800 bg-[#111827]">
 
           <div className="flex items-center gap-3 mb-4">
-
             <div className="w-10 h-10 rounded-full bg-cyan-500 flex items-center justify-center font-bold">
               A
             </div>
 
             <div>
-              <p className="font-medium text-white">
-                Admin User
-              </p>
-
-              <p className="text-gray-400 text-sm">
-                VIP Trader
-              </p>
+              <p className="font-medium text-white">Admin User</p>
+              <p className="text-gray-400 text-sm">VIP Trader</p>
             </div>
-
           </div>
 
           <button
             onClick={handleLogout}
-            className="
-              w-full py-2 rounded-lg
-              bg-red-500 hover:bg-red-600
-              transition-colors duration-200
-            "
+            className="w-full py-2 rounded-lg bg-red-500 hover:bg-red-600 transition-colors"
           >
             Logout
           </button>
@@ -96,52 +81,37 @@ export default function Layout({ children }) {
       </aside>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col lg:ml-0">
+      <div className="flex-1 flex flex-col">
 
         {/* TOPBAR */}
-        <header
-          className="
-            sticky top-0 z-30
-            bg-[#111827]/80 backdrop-blur-xl
-            border-b border-gray-800
-          "
-        >
+        <header className="sticky top-0 z-30 bg-[#111827]/80 backdrop-blur-xl border-b border-gray-800">
 
           <div className="flex items-center justify-between px-6 py-4">
 
-            {/* MOBILE MENU BUTTON */}
+            {/* MOBILE BUTTON */}
             <button
               onClick={() => setMobileMenu(true)}
-              className="
-                lg:hidden text-white text-2xl
-                hover:text-cyan-400 transition-colors
-              "
+              className="lg:hidden text-white text-2xl hover:text-cyan-400"
             >
               ☰
             </button>
 
             {/* TITLE */}
             <div>
-
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold">
                 Modern SaaS Dashboard
               </h2>
-
               <p className="text-sm text-gray-400">
                 Trading Control Center
               </p>
-
             </div>
 
             {/* STATUS */}
             <div className="flex items-center gap-3">
-
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-
               <span className="text-sm text-gray-300">
                 Live Market Active
               </span>
-
             </div>
 
           </div>
@@ -150,9 +120,7 @@ export default function Layout({ children }) {
 
         {/* PAGE CONTENT */}
         <main className="flex-1 p-6 overflow-y-auto">
-
           {children}
-
         </main>
 
       </div>
@@ -161,10 +129,20 @@ export default function Layout({ children }) {
   );
 }
 
-/* NAVIGATION ITEM */
+/* NAV ITEM */
 function NavItem({ to, label }) {
   return (
     <Link
       to={to}
       className="
         block px-4 py-3 rounded-lg
+        text-gray-300
+        hover:bg-cyan-500/10
+        hover:text-cyan-400
+        transition-all duration-200
+      "
+    >
+      {label}
+    </Link>
+  );
+}
