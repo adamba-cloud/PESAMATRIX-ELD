@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import { auth } from "../../lib/firebase"; // ✅ FIXED IMPORT
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,7 +14,8 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
-    } catch {
+    } catch (error) {
+      console.error(error);
       alert("Login Failed");
     }
   };
