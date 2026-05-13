@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Recent Signals</h1>
+{% for signal in signals %}
+<div class="card">
+    <h3>{{ signal.pair }} - {{ signal.type }}</h3>
+    <p>Entry: {{ signal.entry }}</p>
+    <p>Pips: {{ signal.pips }}</p>
+</div>
+{% endfor %}
+{% endblock %}
