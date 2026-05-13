@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Profile</h1>
+<div class="card">
+    <p><strong>Username:</strong> {{ current_user['username'] }}</p>
+    <p><strong>Plan:</strong> {{ current_user['plan'] }}</p>
+    <p><strong>Win Rate:</strong> {{ current_user['win_rate'] }}%</p>
+    <p><strong>Total Profit:</strong> ${{ '%.0f'|format(current_user['total_profit']) }}</p>
+</div>
+{% endblock %}
