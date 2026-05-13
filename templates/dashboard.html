@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 style="font-size: 48px; margin-bottom: 10px;">Welcome back, {{ current_user['username'] }} 👋</h1>
+<p style="color:#94a3b8; font-size:18px; margin-bottom:30px;">Here's what's happening with your trading today.</p>
+
+<div class="vip-banner">
+    <h2>👑 {{ current_user['plan'] }} Member</h2>
+    <p>VIP access active with full signal privileges and real-time alerts.</p>
+</div>
+
+<div class="cards">
+    <div class="card stat-card">
+        <h3>Total Signals</h3>
+        <p class="big-number">{{ current_user['total_signals'] }}</p>
+        <span class="green">+12 this week</span>
+    </div>
+    <div class="card stat-card">
+        <h3>Win Rate</h3>
+        <p class="big-number">{{ current_user['win_rate'] }}%</p>
+        <span class="green">+5% this week</span>
+    </div>
+    <div class="card stat-card">
+        <h3>Active Plan</h3>
+        <p class="big-number">{{ current_user['plan'] }}</p>
+    </div>
+    <div class="card stat-card">
+        <h3>Total Profit</h3>
+        <p class="big-number">${{ '%.0f'|format(current_user['total_profit']) }}</p>
+        <span class="green">+18.7% this month</span>
+    </div>
+</div>
+
+<div class="two-col">
+    <div class="card">
+        <h2>📈 Live Market Overview</h2>
+        <div class="market-row"><span>EUR/USD</span><strong>1.08245</strong><span class="green">+0.45%</span></div>
+        <div class="market-row"><span>XAUUSD</span><strong>2356.75</strong><span class="green">+0.89%</span></div>
+        <div class="market-row"><span>BTCUSDT</span><strong>67892.11</strong><span class="green">+2.35%</span></div>
+        <a class="btn" href="/signals">View All Markets</a>
+    </div>
+
+    <div class="card">
+        <h2>🚀 Subscription Benefits</h2>
+        <ul class="feature-list">
+            <li>✔ All VIP Signals</li>
+            <li>✔ Real-time Alerts</li>
+            <li>✔ Strategy Guide</li>
+            <li>✔ Priority Support</li>
+        </ul>
+        {% if current_user['plan'] != 'VIP' %}
+            <a class="btn" href="/upgrade">Upgrade to VIP</a>
+        {% else %}
+            <a class="btn" href="/payments">Manage Subscription</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card glow">
+    <h2>🔐 Secure Your Account</h2>
+    <p>Enable two-factor authentication to keep your account safe.</p>
+    <a class="btn" href="/profile">Enable 2FA</a>
+</div>
+{% endblock %}
